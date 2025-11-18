@@ -22,62 +22,104 @@ if len(sys.argv) > 1 and sys.argv[1] == "--api-key" and len(sys.argv) > 2:
 mcp = FastMCP("Dixa MCP Server")
 
 # Add middleware to extract Authorization header
-# We'll try to access the app after FastMCP initializes it
-def add_auth_middleware():
-    """Add middleware to extract Authorization header from requests."""
-    try:
-        from starlette.middleware.base import BaseHTTPMiddleware
-        from starlette.requests import Request
-        from starlette.responses import Response
-        from typing import Callable, Awaitable
-        
-        class AuthExtractionMiddleware(BaseHTTPMiddleware):
-            async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
-                # Extract Authorization header
-                auth_header = request.headers.get("Authorization", "")
-                if auth_header:
-                    # Remove "Bearer " prefix if present
-                    token = auth_header.replace("Bearer ", "").strip()
-                    if token:
-                        # Store in context variable for use in tools
-                        _client_api_key.set(token)
-                
-                response = await call_next(request)
-                return response
-        
-        # Try to find and access the FastMCP app
-        # FastMCP may expose it through different attributes
-        app = None
-        for attr in ['_app', 'app', '_server', 'server']:
-            if hasattr(mcp, attr):
-                candidate = getattr(mcp, attr)
-                # Check if it's an ASGI app (has __call__ method)
-                if hasattr(candidate, '__call__'):
-                    app = candidate
-                    break
-        
-        # Also try to get it from transport
-        if app is None:
-            transport = getattr(mcp, '_transport', None) or getattr(mcp, 'transport', None)
-            if transport:
-                for attr in ['_app', 'app', '_server', 'server']:
-                    if hasattr(transport, attr):
-                        candidate = getattr(transport, attr)
-                        if hasattr(candidate, '__call__'):
-                            app = candidate
-                            break
-        
-        if app:
-            # Add middleware to the app
-            app.add_middleware(AuthExtractionMiddleware)
-    except Exception as e:
-        # If middleware setup fails, tools will fall back to other auth methods
-        # This is expected for subprocess transport
-        pass
+# We'll wrap the ASGI app to extract the Authorization header
+def create_auth_middleware_wrapper(original_app):
+    """Wrap the ASGI app with middleware to extract Authorization header."""
+    from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.requests import Request
+    from starlette.responses import Response
+    from typing import Callable, Awaitable
+    
+    class AuthExtractionMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+            # Extract Authorization header
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header:
+                # Remove "Bearer " prefix if present
+                token = auth_header.replace("Bearer ", "").strip()
+                if token:
+                    # Store in context variable for use in tools
+                    _client_api_key.set(token)
+                    # Debug: log that we extracted the token (first 20 chars only for security)
+                    import sys
+                    print(f"[AuthMiddleware] Extracted API key: {token[:20]}...", file=sys.stderr, flush=True)
+            
+            response = await call_next(request)
+            return response
+    
+    # Wrap the original app
+    return AuthExtractionMiddleware(original_app)
 
-# Try to setup middleware immediately (for FastMCP Cloud)
-# For local HTTP servers, it will be set up in the __main__ block
-add_auth_middleware()
+# Monkey-patch FastMCP's run method to wrap the app with our middleware
+_original_run = mcp.run
+def run_with_auth(*args, **kwargs):
+    """Wrap mcp.run to add auth middleware to the app."""
+    # Check if this is HTTP/SSE transport
+    transport = kwargs.get('transport') or (args[0] if args else None)
+    is_http = transport in ('sse', 'http', 'http-sse')
+    
+    if is_http:
+        # Store original run
+        result = _original_run(*args, **kwargs)
+        
+        # Try to find and wrap the app
+        try:
+            # FastMCP might store the app in different places
+            for obj in [mcp, getattr(mcp, '_transport', None), getattr(mcp, 'transport', None)]:
+                if obj is None:
+                    continue
+                    
+                # Try different attribute names
+                for attr_name in ['_app', 'app', '_asgi_app', 'asgi_app', '_server', 'server']:
+                    if hasattr(obj, attr_name):
+                        app = getattr(obj, attr_name)
+                        # Check if it's an ASGI app
+                        if hasattr(app, '__call__') and not isinstance(app, type):
+                            # Wrap it with our middleware
+                            wrapped = create_auth_middleware_wrapper(app)
+                            setattr(obj, attr_name, wrapped)
+                            break
+        except Exception:
+            pass
+        
+        return result
+    else:
+        # For subprocess, just run normally
+        return _original_run(*args, **kwargs)
+
+# Replace the run method
+mcp.run = run_with_auth
+
+# For FastMCP Cloud, try to setup middleware immediately after module load
+# FastMCP Cloud might initialize the app before mcp.run() is called
+def try_setup_middleware_immediately():
+    """Try to setup middleware immediately for FastMCP Cloud."""
+    try:
+        # Wait a bit for FastMCP to initialize
+        import time
+        time.sleep(0.1)
+        
+        # Try to find the app
+        for obj in [mcp, getattr(mcp, '_transport', None), getattr(mcp, 'transport', None)]:
+            if obj is None:
+                continue
+                
+            for attr_name in ['_app', 'app', '_asgi_app', 'asgi_app', '_server', 'server']:
+                if hasattr(obj, attr_name):
+                    app = getattr(obj, attr_name)
+                    if hasattr(app, '__call__') and not isinstance(app, type):
+                        # Wrap it
+                        wrapped = create_auth_middleware_wrapper(app)
+                        setattr(obj, attr_name, wrapped)
+                        import sys
+                        print("[FastMCP Cloud] Successfully added auth middleware", file=sys.stderr, flush=True)
+                        return
+    except Exception as e:
+        import sys
+        print(f"[FastMCP Cloud] Could not setup middleware immediately: {e}", file=sys.stderr, flush=True)
+
+# Try immediately (for FastMCP Cloud)
+try_setup_middleware_immediately()
 
 # You can also add instructions for how to interact with the server
 mcp_with_instructions = FastMCP(
@@ -117,10 +159,19 @@ def get_organization_info(api_key: Optional[str] = None) -> Dict[str, Any]:
         os.getenv("DIXA_API_KEY")
     )
     
+    # Debug: log which auth method was used
+    import sys
+    if final_api_key:
+        auth_source = "parameter" if api_key else ("header" if _client_api_key.get() else ("cmdline" if _api_key else "env"))
+        print(f"[get_organization_info] Using API key from: {auth_source}", file=sys.stderr, flush=True)
+    else:
+        print("[get_organization_info] No API key found in any source", file=sys.stderr, flush=True)
+    
     if not final_api_key:
         raise ValueError(
             "API key is required. Please provide it as the 'api_key' parameter, "
-            "or set DIXA_API_KEY environment variable."
+            "or set DIXA_API_KEY environment variable. "
+            f"(Context var: {_client_api_key.get() is not None})"
         )
     
     client = DixaClient(api_key=final_api_key)
@@ -135,11 +186,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--http":
         # Run as HTTP server on port 8000 (default)
         port = int(sys.argv[2]) if len(sys.argv) > 2 else 8000
-        # Setup middleware before running (app will be initialized by mcp.run)
-        # We'll try again after run() in case the app wasn't accessible before
+        # The middleware will be added automatically by our monkey-patched run method
         mcp.run(transport="sse", host="0.0.0.0", port=port)
-        # Try to setup middleware again after app initialization
-        add_auth_middleware()
     else:
         # Run as subprocess (default for Claude Desktop)
         mcp.run()
