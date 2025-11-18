@@ -51,10 +51,11 @@ The server supports multiple authentication methods and transport options. Choos
 
 The server supports API key authentication through multiple methods (in priority order):
 
-1. **Tool Parameter**: Pass API key directly to the tool
-2. **Client Auth Token**: From HTTP/SSE client authentication (for HTTP transport)
-3. **Command-Line Argument**: Pass via `--api-key` flag
-4. **Environment Variable**: Set `DIXA_API_KEY` environment variable
+1. **HTTP Authorization Header**: Automatically extracted from `Authorization: Bearer ...` header (for HTTP/SSE transport)
+2. **Command-Line Argument**: Pass via `--api-key` flag (for subprocess transport)
+3. **Environment Variable**: Set `DIXA_API_KEY` environment variable
+
+**Note**: For remote HTTP/SSE servers, the API key is automatically extracted from the Authorization header sent by `mcp-remote`. You don't need to pass it as a tool parameter.
 
 ### Transport Options
 
@@ -99,9 +100,9 @@ This is the default transport for Claude Desktop integration.
 
 **Note**: Replace `/path/to/venv/bin/python` and `/path/to/dixa-mcp-public/server.py` with your actual paths.
 
-#### Option 2: HTTP/SSE Transport
+#### Option 2: HTTP/SSE Transport (Remote Servers)
 
-For remote access or when you want to use Bearer token authentication.
+For remote access or when you want to use Bearer token authentication via HTTP headers.
 
 ##### Step 1: Start the HTTP Server
 
@@ -113,42 +114,58 @@ python server.py --http 8000
 
 The server will start on `http://localhost:8000/mcp` (or your specified port).
 
-##### Step 2: Configure the Client
+For remote servers, use:
+```bash
+python server.py --http 8000 http
+```
 
-**Using Bearer Token Auth**:
+##### Step 2: Configure Claude Desktop
+
+Claude Desktop uses `mcp-remote` to connect to remote MCP servers. Configure it in your `claude_desktop_config.json`:
+
+**For Local Testing**:
 
 ```json
 {
     "mcpServers": {
         "dixa-remote": {
-            "transport": "sse",
-            "url": "http://localhost:8000/mcp",
-            "auth": {
-                "type": "bearer",
-                "token": "your-dixa-api-key-here"
-            }
+            "command": "npx",
+            "args": [
+                "mcp-remote",
+                "http://localhost:8000/mcp",
+                "--header",
+                "Authorization: Bearer your-dixa-api-key-here",
+                "--allow-http"
+            ]
         }
     }
 }
 ```
 
-**Using Headers**:
+**For Remote Servers** (e.g., FastMCP Cloud):
 
 ```json
 {
     "mcpServers": {
         "dixa-remote": {
-            "transport": "sse",
-            "url": "http://localhost:8000/mcp",
-            "headers": {
-                "Authorization": "Bearer your-dixa-api-key-here"
-            }
+            "command": "npx",
+            "args": [
+                "mcp-remote",
+                "https://your-server.fastmcp.app/mcp",
+                "--header",
+                "Authorization: Bearer your-dixa-api-key-here"
+            ]
         }
     }
 }
 ```
 
-**For Remote Servers**: Replace `http://localhost:8000` with your server's URL.
+**Important Notes**:
+- The `--header` flag passes the Authorization header to the server
+- The `--allow-http` flag is required for local HTTP servers (not needed for HTTPS)
+- The API key is automatically extracted from the Authorization header by the server
+- Replace `your-dixa-api-key-here` with your actual Dixa API key
+- For remote servers, replace the URL with your deployed server's URL
 
 ## Running the Server
 
@@ -185,19 +202,20 @@ python server.py --api-key your-dixa-api-key-here
 
 Retrieves organization information from the Dixa API.
 
-**Parameters**:
-- `api_key` (optional): Dixa API key. If not provided, uses configured authentication method.
+**Parameters**: None (API key is automatically extracted from the Authorization header or configuration)
 
 **Returns**: Dictionary containing organization information.
 
 **Example Usage**:
 ```python
-# API key will be automatically used from configuration
+# API key is automatically extracted from:
+# - Authorization header (for remote HTTP/SSE servers)
+# - Command-line arguments (for local subprocess servers)
+# - DIXA_API_KEY environment variable (fallback)
 result = get_organization_info()
-
-# Or explicitly provide API key
-result = get_organization_info(api_key="your-key-here")
 ```
+
+**Note**: For remote servers, ensure the Authorization header is configured in your Claude Desktop config as shown in the Configuration section.
 
 ### `greet`
 
@@ -354,10 +372,16 @@ pip install fastmcp requests
 ### API Key Not Found
 
 Ensure your API key is provided through one of the supported methods:
-1. Environment variable: `export DIXA_API_KEY="your-key"`
-2. Command-line: `python server.py --api-key your-key`
-3. Client configuration (for HTTP transport)
-4. Tool parameter
+
+**For Subprocess Transport (Local)**:
+1. Environment variable: `export DIXA_API_KEY="your-key"` (set in Claude Desktop config `env` section)
+2. Command-line: `python server.py --api-key your-key` (set in Claude Desktop config `args` section)
+
+**For HTTP/SSE Transport (Remote)**:
+1. Authorization header: Configure in Claude Desktop config using `--header "Authorization: Bearer your-key"` in the `mcp-remote` args
+2. The server automatically extracts the API key from the Authorization header using FastMCP's `get_http_headers()` function
+
+**Note**: For remote servers, environment variables are not passed by Claude Desktop, so you must use the Authorization header method.
 
 ### Server Won't Start
 
@@ -368,10 +392,13 @@ Ensure your API key is provided through one of the supported methods:
 
 ### Connection Issues (HTTP/SSE)
 
-- Ensure the server is running: `python server.py --http 8000`
-- Check the URL in your client config matches the server URL
+- Ensure the server is running: `python server.py --http 8000` (or `python server.py --http 8000 http` for HTTP transport)
+- Check the URL in your client config matches the server URL (should end with `/mcp`)
+- Verify the Authorization header is correctly formatted: `Authorization: Bearer your-api-key-here`
+- For local HTTP servers, ensure `--allow-http` flag is included in `mcp-remote` args
 - Verify firewall settings allow connections to the port
-- Check server logs for authentication errors
+- Check server logs for authentication errors (look for `[get_organization_info]` messages)
+- Ensure `npx` is installed and can run `mcp-remote`
 
 ## Development
 
