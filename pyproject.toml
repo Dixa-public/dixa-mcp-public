@@ -9,6 +9,11 @@ dependencies = [
     "requests",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+# Note: FastMCP Cloud will use requirements.txt if present
+# This pyproject.toml is kept for local development
+# If you want to build as a package, uncomment the build-system section
+# and configure it properly for your package structure
+
+# [build-system]
+# requires = ["hatchling"]
+# build-backend = "hatchling.build"
