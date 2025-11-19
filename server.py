@@ -1,25 +1,89 @@
 import os
 import sys
 from fastmcp import FastMCP
-from dixa_api import DixaClient
-from typing import Optional, Dict, Any
-from contextvars import ContextVar
+from typing import Dict, Any
 
-# Context variable to store API key from client auth (for HTTP/SSE transport)
-_client_api_key: ContextVar[Optional[str]] = ContextVar('client_api_key', default=None)
-
-# Global variable to store API key from initialization (for subprocess transport)
-_api_key: Optional[str] = None
+# Import shared variables - these are the same instances used in tools.base
+from tools.shared import _client_api_key, _api_key
 
 # Check for API key in command line arguments (for auth config support)
 # Format: python server.py --api-key YOUR_KEY
 if len(sys.argv) > 1 and sys.argv[1] == "--api-key" and len(sys.argv) > 2:
-    _api_key = sys.argv[2]
+    # Set the shared _api_key variable
+    import tools.shared
+    tools.shared._api_key = sys.argv[2]
     # Remove the args so FastMCP doesn't see them
     sys.argv = [sys.argv[0]]
 
 # For HTTP/SSE transport, we need to extract Authorization header from requests
-mcp = FastMCP("Dixa MCP Server")
+mcp = FastMCP(
+    "Dixa MCP Server",
+    instructions="""
+        This MCP server provides access to the Dixa API, allowing you to interact with your Dixa organization.
+        
+        About Dixa:
+        Dixa is a customer service platform that enables organizations to manage customer interactions across multiple channels (email, chat, phone, SMS, social media, etc.) in a unified conversational interface. Dixa helps customer service teams deliver personalized, efficient support by centralizing all customer conversations, automating workflows, and providing tools for agents to resolve issues effectively.
+        
+        Key Terms and Definitions:
+        - End Users (Customers): The customers or end users who contact your organization for support. They are the people who initiate conversations through various channels (email, chat, phone, etc.). End users are managed separately from agents and have their own profiles, custom attributes, and conversation history.
+        - Agents (Customer Service Agents): Customer service representatives who handle and resolve customer inquiries. Agents work within the Dixa platform to respond to conversations, manage customer relationships, and provide support across all channels. Agents can be assigned to conversations, work in teams, and have presence status indicating their availability.
+        - Admins (Administrators): Agents with administrative privileges who manage the Dixa organization. Admins configure settings, manage agents and teams, set up queues, configure business hours, manage contact endpoints, and oversee analytics and performance. In the Dixa API, both agents and admins are represented under the "agents" entity.
+        
+        Available tool categories:
+        - Organization: Get organization information
+        - Agents: Manage agents/admins (get, list, create, update, patch, manage presence and teams)
+        - End Users: Manage end users/customers (get, list, create, update, patch, delete, anonymize, list conversations)
+        - Settings: Manage contact endpoints, business hours schedules and status
+        - Conversations: Manage conversations (get, create, add notes, tag, claim, close, anonymize, search, etc.)
+        - Custom Attributes: Manage custom attributes for conversations and end users
+        - Analytics: Get analytics data (metrics, records, filter values) - requires discovering available metrics/records first
+        
+        Important notes:
+        - All modification endpoints (create, update, patch, delete) require explicit user confirmation before execution
+        - The API key is automatically extracted from the Authorization header or configuration
+        - Read-only endpoints (get, list) do not require confirmation
+        - Anonymization endpoints are typically irreversible and used for GDPR compliance
+        
+        Common Workflow Patterns:
+        Many tools require IDs from other entities, which must be obtained first. Follow these patterns:
+        
+        1. Tag Operations:
+           - To tag a conversation: First use `list_tags` to list all tags and find the tag ID by name, or use `add_tag` if the tag doesn't exist yet. Then use `tag_conversation` with the conversation_id and tag_id.
+           - To remove a tag: Use `list_conversation_tags` to see tags on a conversation, or `list_tags` to find the tag ID, then use `remove_tag_from_conversation`.
+           - To activate/deactivate/delete a tag: First use `list_tags` to find the tag ID, then use `activate_tag`, `deactivate_tag`, or `remove_tag`.
+        
+        2. Conversation Operations:
+           - Most conversation operations require a conversation_id. First use `fetch_conversation_by_id` (if you know the ID) or `search_conversations` to find conversations, then use the conversation_id in subsequent operations.
+           - To create a conversation: You need a requester_id (end user). Use `list_end_users` to find an existing end user, or `add_end_user` if they don't exist. For outbound messages, you also need an agent_id from `list_agents`.
+           - To claim a conversation: You need both conversation_id (from search/fetch) and agent_id (from `list_agents`). Use `assign_conversation_to_agent`.
+           - To link conversations: You need both conversation_id and parent_conversation_id, both obtained from `fetch_conversation_by_id` or search. Use `link_conversation_to_parent`.
+        
+        3. Agent Assignment Operations:
+           - To assign agents to teams: First use `list_agents` to find agent IDs, then use `list_teams` to find the team_id, then use `add_agents_to_team`.
+           - To assign agents to queues: First use `list_agents` to find agent IDs, then use `list_queues` to find the queue_id, then use `assign_agents_to_queue`.
+           - To claim a conversation: First use `list_agents` to find the agent_id, then use `assign_conversation_to_agent`.
+        
+        4. Team Operations:
+           - Most team operations require a team_id. First use `list_teams` to list all teams and find the team ID, then use it in operations like `list_team_agents`, `add_agents_to_team`, or `remove_agents_from_team`.
+        
+        5. Queue Operations:
+           - Most queue operations require a queue_id. First use `list_queues` to list all queues and find the queue ID, then use it in operations like `fetch_queue_by_id`, `list_queue_agents`, `assign_agents_to_queue`, etc.
+        
+        6. Knowledge Base Operations:
+           - To create an article in a category: First use `list_knowledge_categories` to find the category_id (optional), then use `add_knowledge_article`.
+           - To update an article: First use `list_knowledge_articles` to find the article_id, then use `modify_knowledge_article`.
+        
+        7. Custom Attributes Operations:
+           - To update custom attributes: First use `list_custom_attributes` to get the list of custom attribute definitions and their IDs. The custom_attributes parameter requires a dictionary mapping custom attribute IDs (UUIDs) to values. Then use `update_conversation_custom_attributes` or `update_end_user_custom_attributes`.
+        
+        8. Analytics Operations:
+           - For aggregated metrics: First call `prepare_analytics_metric_query` without metric_id to discover available metrics. Then call `prepare_analytics_metric_query` with a metric_id to get all information needed (filters, aggregations, filter values) in one call. Finally, use `fetch_analytics_metric_data` to fetch the metric data.
+           - For unaggregated records: First call `prepare_analytics_record_query` without record_id to discover available records. Then call `prepare_analytics_record_query` with a record_id to get all information needed (filters, filter values) in one call. Finally, use `fetch_analytics_record_data` to fetch the record data.
+           - Important: Analytics endpoints require a discovery workflow. Always start by calling the prepare tools without IDs to find available metrics/records, then call them again with specific IDs to get all information, and finally query the data.
+        
+        General Pattern: When a tool requires an ID parameter (tag_id, conversation_id, agent_id, team_id, queue_id, etc.), you must first use the corresponding "list" or "fetch" tool to find that ID. Always check if the entity exists before trying to use it, or add it first if it doesn't exist.
+    """
+)
 
 # Add Starlette middleware directly to the HTTP/SSE apps
 # FastMCP middleware runs at MCP protocol level, not HTTP level, so we need HTTP-level middleware
@@ -242,81 +306,104 @@ if hasattr(type(mcp), 'streamable_http_app'):
 
 print("[MonkeyPatch] Set up property interceptors for app middleware injection", file=sys.stderr, flush=True)
 
-# You can also add instructions for how to interact with the server
-mcp_with_instructions = FastMCP(
-    name="HelpfulAssistant",
-    instructions="""
-        This server provides insights into your Dixa organization.
-    """,
-)
+# Import and register tools from the tools package
+from tools.organization import fetch_organization_details
+from tools.agents import fetch_agent_by_id, list_agents, list_agents_presence, list_agent_teams, add_agent, modify_agent_partial, update_agent_full, set_agent_working_channel
+from tools.settings import list_contact_endpoints, fetch_contact_endpoint_by_id, check_business_hours_status, list_business_hours_schedules
+from tools.conversations import fetch_conversation_by_id, list_conversation_flows, list_conversation_activity_log, list_conversation_notes, list_linked_conversations, list_conversation_messages, list_organization_activity_log, list_conversation_ratings, search_conversations, start_conversation, import_conversations, add_conversation_note, add_conversation_notes_bulk, anonymize_conversation, anonymize_conversation_message, tag_conversation_bulk, assign_conversation_to_agent, close_conversation, link_conversation_to_parent, set_conversation_followup_status, reopen_conversation, tag_conversation, remove_tag_from_conversation
+from tools.custom_attributes import fetch_custom_attribute_by_id, list_custom_attributes, update_conversation_custom_attributes, update_end_user_custom_attributes
+from tools.users import list_end_users, fetch_end_user_by_id, add_end_user, add_end_users_bulk, modify_end_user_partial, modify_end_users_bulk, update_end_user_full, update_end_users_bulk, list_end_user_conversations, anonymize_end_user
+from tools.knowledge import list_knowledge_articles, fetch_knowledge_article_by_id, add_knowledge_article, modify_knowledge_article, remove_knowledge_article, list_knowledge_categories, add_knowledge_category
+from tools.queues import list_queues, fetch_queue_by_id, check_queue_availability, check_conversation_queue_position, list_queue_agents, add_queue, assign_agents_to_queue, remove_agents_from_queue
+from tools.tags import list_tags, fetch_tag_by_id, list_conversation_tags, add_tag, activate_tag, deactivate_tag, remove_tag
+from tools.teams import list_teams, fetch_team_by_id, list_team_agents, list_team_presence, add_team, add_agents_to_team, remove_agents_from_team, remove_team
+from tools.analytics import fetch_analytics_metric_data, fetch_analytics_record_data, prepare_analytics_metric_query, prepare_analytics_record_query
 
-@mcp.tool
-def greet(name: str) -> str:
-    return f"Hello, {name}!"
-
-
-@mcp.tool
-async def get_organization_info() -> Dict[str, Any]:
-    """
-    Get organization information from the Dixa API.
-    
-    The API key is automatically extracted from:
-    - Authorization header (for remote HTTP/SSE servers)
-    - Command-line arguments (for local subprocess servers)
-    - DIXA_API_KEY environment variable (fallback)
-    
-    Returns:
-        Dictionary containing organization information from Dixa.
-    """
-    # Try to get headers from the HTTP request using FastMCP's built-in function
-    api_key_from_header = None
-    try:
-        from fastmcp.server.dependencies import get_http_headers
-        headers = get_http_headers()
-        if headers:
-            # Headers are typically lowercase in HTTP
-            auth_header = headers.get("authorization") or headers.get("Authorization", "")
-            if auth_header:
-                # Remove "Bearer " prefix if present
-                api_key_from_header = auth_header.replace("Bearer ", "").strip()
-                print(f"[get_organization_info] ✓ Extracted API key from HTTP headers: {api_key_from_header[:20]}...", file=sys.stderr, flush=True)
-    except ImportError:
-        print("[get_organization_info] get_http_headers not available, trying fallback methods", file=sys.stderr, flush=True)
-    except Exception as e:
-        print(f"[get_organization_info] Error getting HTTP headers: {e}", file=sys.stderr, flush=True)
-    
-    # Priority: HTTP header > context var (from middleware) > command-line arg > env var
-    final_api_key = (
-        api_key_from_header or
-        _client_api_key.get() or 
-        _api_key or 
-        os.getenv("DIXA_API_KEY")
-    )
-    
-    # Debug: log which auth method was used
-    if final_api_key:
-        if api_key_from_header:
-            auth_source = "http_header"
-        elif _client_api_key.get():
-            auth_source = "context_var"
-        elif _api_key:
-            auth_source = "cmdline"
-        else:
-            auth_source = "env"
-        print(f"[get_organization_info] Using API key from: {auth_source}", file=sys.stderr, flush=True)
-    else:
-        print("[get_organization_info] No API key found in any source", file=sys.stderr, flush=True)
-        print(f"[get_organization_info] HTTP headers available: {headers if 'headers' in locals() else 'N/A'}", file=sys.stderr, flush=True)
-    
-    if not final_api_key:
-        raise ValueError(
-            "API key is required but not found. "
-            "For remote servers, ensure the Authorization header is set in your Claude Desktop config. "
-            "For local servers, set DIXA_API_KEY environment variable or use --api-key command-line argument."
-        )
-    
-    client = DixaClient(api_key=final_api_key)
-    return client.get_organization()
+# Register tools with FastMCP
+mcp.tool(fetch_organization_details)
+mcp.tool(fetch_agent_by_id)
+mcp.tool(list_agents)
+mcp.tool(list_agents_presence)
+mcp.tool(list_agent_teams)
+mcp.tool(add_agent)
+mcp.tool(modify_agent_partial)
+mcp.tool(update_agent_full)
+mcp.tool(set_agent_working_channel)
+mcp.tool(check_business_hours_status)
+mcp.tool(list_business_hours_schedules)
+mcp.tool(list_contact_endpoints)
+mcp.tool(fetch_contact_endpoint_by_id)
+mcp.tool(fetch_conversation_by_id)
+mcp.tool(list_conversation_flows)
+mcp.tool(list_conversation_activity_log)
+mcp.tool(list_conversation_notes)
+mcp.tool(list_linked_conversations)
+mcp.tool(list_conversation_messages)
+mcp.tool(list_organization_activity_log)
+mcp.tool(list_conversation_ratings)
+mcp.tool(search_conversations)
+mcp.tool(start_conversation)
+mcp.tool(import_conversations)
+mcp.tool(add_conversation_note)
+mcp.tool(add_conversation_notes_bulk)
+mcp.tool(anonymize_conversation)
+mcp.tool(anonymize_conversation_message)
+mcp.tool(update_conversation_custom_attributes)
+mcp.tool(tag_conversation_bulk)
+mcp.tool(assign_conversation_to_agent)
+mcp.tool(close_conversation)
+mcp.tool(link_conversation_to_parent)
+mcp.tool(set_conversation_followup_status)
+mcp.tool(reopen_conversation)
+mcp.tool(tag_conversation)
+mcp.tool(remove_tag_from_conversation)
+mcp.tool(fetch_custom_attribute_by_id)
+mcp.tool(list_custom_attributes)
+mcp.tool(update_end_user_custom_attributes)
+mcp.tool(list_end_users)
+mcp.tool(fetch_end_user_by_id)
+mcp.tool(add_end_user)
+mcp.tool(add_end_users_bulk)
+mcp.tool(modify_end_user_partial)
+mcp.tool(modify_end_users_bulk)
+mcp.tool(update_end_user_full)
+mcp.tool(update_end_users_bulk)
+mcp.tool(list_end_user_conversations)
+mcp.tool(anonymize_end_user)
+mcp.tool(list_knowledge_articles)
+mcp.tool(fetch_knowledge_article_by_id)
+mcp.tool(add_knowledge_article)
+mcp.tool(modify_knowledge_article)
+mcp.tool(remove_knowledge_article)
+mcp.tool(list_knowledge_categories)
+mcp.tool(add_knowledge_category)
+mcp.tool(list_queues)
+mcp.tool(fetch_queue_by_id)
+mcp.tool(check_queue_availability)
+mcp.tool(check_conversation_queue_position)
+mcp.tool(list_queue_agents)
+mcp.tool(add_queue)
+mcp.tool(assign_agents_to_queue)
+mcp.tool(remove_agents_from_queue)
+mcp.tool(list_tags)
+mcp.tool(fetch_tag_by_id)
+mcp.tool(list_conversation_tags)
+mcp.tool(add_tag)
+mcp.tool(activate_tag)
+mcp.tool(deactivate_tag)
+mcp.tool(remove_tag)
+mcp.tool(list_teams)
+mcp.tool(fetch_team_by_id)
+mcp.tool(list_team_agents)
+mcp.tool(list_team_presence)
+mcp.tool(add_team)
+mcp.tool(add_agents_to_team)
+mcp.tool(remove_agents_from_team)
+mcp.tool(remove_team)
+mcp.tool(prepare_analytics_metric_query)
+mcp.tool(fetch_analytics_metric_data)
+mcp.tool(prepare_analytics_record_query)
+mcp.tool(fetch_analytics_record_data)
 
 
 if __name__ == "__main__":
