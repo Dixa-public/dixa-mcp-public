@@ -331,9 +331,9 @@ from tools.knowledge import list_knowledge_articles, fetch_knowledge_article_by_
 from tools.queues import list_queues, fetch_queue_by_id, check_queue_availability, check_conversation_queue_position, list_queue_agents, add_queue, assign_agents_to_queue, remove_agents_from_queue
 from tools.tags import list_tags, fetch_tag_by_id, list_conversation_tags, add_tag, activate_tag, deactivate_tag, remove_tag
 from tools.teams import list_teams, fetch_team_by_id, list_team_agents, list_team_presence, add_team, add_agents_to_team, remove_agents_from_team, remove_team
-from tools.analytics import fetch_aggregated_data, prepare_analytics_metric_query, prepare_analytics_record_query
-# NOTE: fetch_unaggregated_data is commented out to prevent conversation length errors
-# from tools.analytics import fetch_unaggregated_data
+from tools.analytics import fetch_aggregated_data, prepare_analytics_metric_query
+# NOTE: Unaggregated data tools are commented out to prevent conversation length errors
+# from tools.analytics import fetch_unaggregated_data, prepare_analytics_record_query
 
 # Register tools with FastMCP
 mcp.tool(fetch_organization_details)
@@ -418,8 +418,8 @@ mcp.tool(remove_agents_from_team)
 mcp.tool(remove_team)
 mcp.tool(prepare_analytics_metric_query)
 mcp.tool(fetch_aggregated_data)
-mcp.tool(prepare_analytics_record_query)
-# NOTE: fetch_unaggregated_data is commented out to prevent conversation length errors
+# NOTE: Unaggregated data tools are commented out to prevent conversation length errors
+# mcp.tool(prepare_analytics_record_query)
 # mcp.tool(fetch_unaggregated_data)
 
 
