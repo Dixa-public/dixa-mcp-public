@@ -23,7 +23,7 @@ The easiest way to get started is using our hosted server. This requires no loca
 Before connecting to any AI client, you'll need a Dixa API key:
 
 1. Log in to your Dixa account
-2. Go to Settings → API
+2. Go to Settings → Integrations → API tokens
 3. Create a new API token for the Dixa API
 4. Copy your API key (you'll need it when configuring your AI client)
 
