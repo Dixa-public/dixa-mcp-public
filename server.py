@@ -77,9 +77,23 @@ mcp = FastMCP(
            - To update custom attributes: First use `list_custom_attributes` to get the list of custom attribute definitions and their IDs. The custom_attributes parameter requires a dictionary mapping custom attribute IDs (UUIDs) to values. Then use `update_conversation_custom_attributes` or `update_end_user_custom_attributes`.
         
         8. Analytics Operations:
-           - For aggregated metrics: First call `prepare_analytics_metric_query` without metric_id to discover available metrics. Then call `prepare_analytics_metric_query` with a metric_id to get all information needed (filters, aggregations, filter values) in one call. Finally, use `fetch_analytics_metric_data` to fetch the metric data.
-           - For unaggregated records: First call `prepare_analytics_record_query` without record_id to discover available records. Then call `prepare_analytics_record_query` with a record_id to get all information needed (filters, filter values) in one call. Finally, use `fetch_analytics_record_data` to fetch the record data.
+           - 🚨 MANDATORY WORKFLOW: Use aggregated data for all analytics queries. Aggregated data provides summary statistics (counts, percentages, averages) that answer most analytics questions.
+           - Step 1 - Aggregated Data (MANDATORY FIRST): First call `prepare_analytics_metric_query` without metric_id to discover available metrics. Then call `prepare_analytics_metric_query` with a metric_id to get all information needed (filters, aggregations, filter values) in one call. Finally, use `fetch_aggregated_data` to fetch the aggregated metric data. Review these results first.
+           - Understanding Aggregation Results: For nested/pre-aggregated metrics (e.g., "conversation_assignments_per_agent"), data is first grouped (e.g., by agent) then aggregated. "Count" refers to the number of groups/entries matching filters, NOT the total count of underlying items. "Sum" refers to the total sum across all groups. Example: Count=22 and Sum=1171 for "conversation_assignments_per_agent" means 22 agents have assignments (Count = number of agent groups) and 1171 total assignments across those agents (Sum = total assignments). To get per-agent details, you would need separate calls filtering by individual agent_id for each agent.
+           - NOTE: Unaggregated data tools are currently disabled to prevent conversation length errors. Use aggregated data only.
+           # NOTE: Unaggregated data tools are commented out to prevent conversation length errors
+           # - Step 2 - Unaggregated Data (ONLY IF NEEDED): Only if aggregated data is insufficient, then proceed to unaggregated records. First call `prepare_analytics_record_query` without record_id to discover available records. Then call `prepare_analytics_record_query` with a record_id to get all information needed (filters, filter values) in one call. Finally, use `fetch_unaggregated_data` to fetch the detailed record data.
            - Important: Analytics endpoints require a discovery workflow. Always start by calling the prepare tools without IDs to find available metrics/records, then call them again with specific IDs to get all information, and finally query the data.
+           # - Pagination for unaggregated data: When using `fetch_unaggregated_data`, you MUST collect ALL available data by paginating through all pages. Use page_limit of 100-300 (maximum 300) for the first request. Check if the response contains a "pageKey" field - if it does, make another call with the same payload but using page_key (page_limit not needed). Continue this process until no "pageKey" is returned, indicating you've collected all available data. Always combine data from all pages for complete analysis.
+           # - Context Management for Large Responses: When processing large unaggregated data responses (especially with multiple pages), you MUST optimize context usage:
+           #   * Extract only relevant information based on the query context - don't store everything
+           #   * Summarize large datasets when possible (e.g., "Found 500 records with average value X" instead of storing all 500 records)
+           #   * Store only essential fields needed to answer the question (IDs, timestamps, key values)
+           #   * Ignore verbose metadata like "_type" fields and nested structures unless specifically needed
+           #   * Focus on field "value" and "name" properties which contain the actual data
+           #   * Consider using aggregated data summaries when available instead of storing all unaggregated records
+           #   * Let the user's question guide what to extract - if they ask for a count, store the count, not all records
+           #   * The full response data is always available in tool responses, so you don't need to store everything in context
         
         General Pattern: When a tool requires an ID parameter (tag_id, conversation_id, agent_id, team_id, queue_id, etc.), you must first use the corresponding "list" or "fetch" tool to find that ID. Always check if the entity exists before trying to use it, or add it first if it doesn't exist.
     """
@@ -317,7 +331,9 @@ from tools.knowledge import list_knowledge_articles, fetch_knowledge_article_by_
 from tools.queues import list_queues, fetch_queue_by_id, check_queue_availability, check_conversation_queue_position, list_queue_agents, add_queue, assign_agents_to_queue, remove_agents_from_queue
 from tools.tags import list_tags, fetch_tag_by_id, list_conversation_tags, add_tag, activate_tag, deactivate_tag, remove_tag
 from tools.teams import list_teams, fetch_team_by_id, list_team_agents, list_team_presence, add_team, add_agents_to_team, remove_agents_from_team, remove_team
-from tools.analytics import fetch_analytics_metric_data, fetch_analytics_record_data, prepare_analytics_metric_query, prepare_analytics_record_query
+from tools.analytics import fetch_aggregated_data, prepare_analytics_metric_query, prepare_analytics_record_query
+# NOTE: fetch_unaggregated_data is commented out to prevent conversation length errors
+# from tools.analytics import fetch_unaggregated_data
 
 # Register tools with FastMCP
 mcp.tool(fetch_organization_details)
@@ -401,9 +417,10 @@ mcp.tool(add_agents_to_team)
 mcp.tool(remove_agents_from_team)
 mcp.tool(remove_team)
 mcp.tool(prepare_analytics_metric_query)
-mcp.tool(fetch_analytics_metric_data)
+mcp.tool(fetch_aggregated_data)
 mcp.tool(prepare_analytics_record_query)
-mcp.tool(fetch_analytics_record_data)
+# NOTE: fetch_unaggregated_data is commented out to prevent conversation length errors
+# mcp.tool(fetch_unaggregated_data)
 
 
 if __name__ == "__main__":

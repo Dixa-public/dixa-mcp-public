@@ -9,14 +9,22 @@ from tools.base import get_dixa_client
 
 async def prepare_analytics_metric_query(metric_id: Optional[str] = None, page_key: Optional[str] = None, page_limit: Optional[int] = None) -> Dict[str, Any]:
     """
-    Prepare all information needed to build a valid payload for fetch_analytics_metric_data.
+    Prepare all information needed to build a valid payload for fetch_aggregated_data.
+    
+    ✅ MANDATORY FIRST STEP: This tool prepares queries for `fetch_aggregated_data` (aggregated/summary data).
+    You MUST start with aggregated data before considering unaggregated records.
+    Only use `prepare_analytics_record_query` and `fetch_unaggregated_data` if aggregated data is insufficient.
     
     This tool combines multiple prerequisite calls into a single operation:
     - If metric_id is not provided: Lists all available metrics (replaces list_analytics_metrics)
     - If metric_id is provided: Fetches metric details (available filters and aggregations) and filter values
     
-    Use this tool BEFORE calling fetch_analytics_metric_data to get all required information
+    Use this tool BEFORE calling fetch_aggregated_data to get all required information
     needed to construct a valid request payload.
+    
+    ⚠️ NOTE: For nested/pre-aggregated metrics (e.g., metrics ending in "_per_agent"), the "Count"
+    aggregation refers to the number of groups (e.g., number of agents), not the total count of
+    underlying items. See fetch_aggregated_data documentation for detailed explanation.
     
     Args:
         metric_id: The metric identifier (optional). 

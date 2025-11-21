@@ -2,20 +2,26 @@
 Tool for preparing analytics record queries by gathering all required information in one call.
 """
 
-import json
 from typing import Dict, Any, Optional
 from tools.base import get_dixa_client
 
 
 async def prepare_analytics_record_query(record_id: Optional[str] = None, page_key: Optional[str] = None, page_limit: Optional[int] = None) -> Dict[str, Any]:
     """
-    Prepare all information needed to build a valid payload for fetch_analytics_record_data.
+    Prepare all information needed to build a valid payload for fetch_unaggregated_data.
+    
+    🚨 MANDATORY: You MUST first use `prepare_analytics_metric_query` and `fetch_aggregated_data` before using this tool.
+    Aggregated data is faster, more efficient, and usually provides the insights you need.
+    Only use this tool if you have already tried aggregated data and determined it's insufficient for your needs.
+    
+    🔄 When using `fetch_unaggregated_data`, remember to paginate through ALL pages to collect complete datasets.
+    Check for "pageKey" in responses and continue making calls until all data is collected.
     
     This tool combines multiple prerequisite calls into a single operation:
     - If record_id is not provided: Lists all available records (replaces list_analytics_records)
     - If record_id is provided: Fetches record details (available filters and field metadata) and filter values
     
-    Use this tool BEFORE calling fetch_analytics_record_data to get all required information
+    Use this tool BEFORE calling fetch_unaggregated_data to get all required information
     needed to construct a valid request payload.
     
     Args:
@@ -61,12 +67,10 @@ async def prepare_analytics_record_query(record_id: Optional[str] = None, page_k
     
     # If no record_id provided, list all available records
     if record_id is None:
-        result = client.get_analytics_records_catalogue(
+        return client.get_analytics_records_catalogue(
             page_key=page_key,
             page_limit=page_limit
         )
-        print(f"[prepare_analytics_record_query] Response (listing all records):\n{json.dumps(result, indent=2)}")
-        return result
     
     # Step 1: Get record details
     record_details = client.get_analytics_record_description(record_id=record_id)
@@ -101,6 +105,5 @@ async def prepare_analytics_record_query(record_id: Optional[str] = None, page_k
         "related_metric_ids": record_details.get("data", {}).get("relatedMetricIds", [])
     }
     
-    print(f"[prepare_analytics_record_query] Response (record_id={record_id}):\n{json.dumps(result, indent=2)}")
     return result
 

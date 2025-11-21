@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional, List, Union
 from tools.base import get_dixa_client
 
 
-async def fetch_analytics_metric_data(
+async def fetch_aggregated_data(
     metric_id: str,
     timezone: str,
     period_filter: Optional[Union[Dict[str, Any], str]] = None,
@@ -18,8 +18,21 @@ async def fetch_analytics_metric_data(
     """
     Get aggregated metric data from the Dixa Analytics API.
     
+    ✅ MANDATORY FIRST STEP - ALWAYS START HERE:
+    This tool MUST be called FIRST before any unaggregated data queries. Aggregated data provides
+    summary statistics (counts, percentages, averages) that answer most analytics questions.
+    
     This tool fetches aggregated (summary) data for a specific metric. Use this when you need
     summary statistics like counts, percentages, or averages rather than individual records.
+    Aggregated data is faster, more efficient, and usually provides the insights you need.
+    
+    Workflow:
+    1. ALWAYS start with this tool (`fetch_aggregated_data`) to get summary statistics
+    2. Review the aggregated results to see if they answer your question
+    3. ONLY if aggregated data is insufficient, then proceed to `fetch_unaggregated_data` for detailed records
+    
+    Most analytics questions can be answered with aggregated data alone - only use unaggregated data
+    when you specifically need to analyze individual records.
     
     ⚠️ REQUIRED PREREQUISITES - You MUST call these tools FIRST to build a valid payload:
     
@@ -53,14 +66,15 @@ async def fetch_analytics_metric_data(
         period_filter: Time period filter (PREFERRED - use this for most queries). Optional.
             MUST be passed as a dictionary/object, NOT as a JSON string.
             Preset format: {"_type": "Preset", "value": {"_type": "PreviousWeek"}}
-            Custom format: {"_type": "Custom", "value": {"from": "2023-01-01T00:00:00Z", "to": "2023-01-31T23:59:59Z"}}
+            Custom interval format: {"_type": "Interval", "start": "2025-05-19T00:00:00Z", "end": "2025-11-19T23:59:59Z"}
             Common preset values: "PreviousWeek", "PreviousMonth", "PreviousQuarter", "PreviousYear", "Today", "Yesterday"
             IMPORTANT: 
             - If provided, csid_filter will be ignored and NOT included in the request (discriminated union).
             - When using period_filter, the filters parameter is REQUIRED and must contain at least one filter.
             - At least one of period_filter, csid_filter, or filters must be provided.
             This is the recommended approach for time-based queries.
-            Example: {"_type": "Preset", "value": {"_type": "PreviousWeek"}} (as object, not string)
+            Example (preset): {"_type": "Preset", "value": {"_type": "PreviousWeek"}}
+            Example (custom interval): {"_type": "Interval", "start": "2025-05-19T00:00:00Z", "end": "2025-11-19T23:59:59Z"}
         
         csid_filter: Array of specific conversation IDs to filter by (integers). 
             Only use when you need to analyze specific conversations and period_filter is not suitable.
@@ -100,10 +114,40 @@ async def fetch_analytics_metric_data(
                 ]
             }
         }
+        
+        ⚠️ IMPORTANT - Understanding Aggregation Results for Nested/Pre-Aggregated Metrics:
+        
+        For nested/pre-aggregated metrics (e.g., "conversation_assignments_per_agent"), the data is first
+        grouped (e.g., by agent) and then aggregated. In these cases:
+        
+        - "Count" ALWAYS refers to the number of groups/entries that match your filters, NOT the total count
+          of underlying items. For "conversation_assignments_per_agent", Count represents the number of agents
+          (groups), not the number of assignments.
+        
+        - "Sum" refers to the total sum across all groups (e.g., total assignments across all agents).
+        
+        Example Response:
+        {
+            "data": {
+                "id": "conversation_assignments_per_agent",
+                "aggregates": [
+                    {"value": 22, "measure": "Count", "_type": "LongAggregateValue"},
+                    {"value": 1171.0, "measure": "Sum", "_type": "DoubleAggregateValue"}
+                ]
+            }
+        }
+        
+        This means:
+        - Count = 22: There are 22 agents with conversation assignments (number of agent groups)
+        - Sum = 1171: There are 1171 total conversation assignments across those 22 agents
+        
+        ⚠️ LIMITATION: To get per-agent breakdowns (e.g., how many assignments each individual agent has),
+        you currently need to make N separate calls filtering by individual agent_id for each agent.
+        The aggregated endpoint does not provide per-group breakdowns in a single call.
     
     Example Usage:
         # Get closed conversations count for last week (filters required when using period_filter)
-        fetch_analytics_metric_data(
+        fetch_aggregated_data(
             metric_id="closed_conversations",
             timezone="Europe/Copenhagen",
             period_filter={"_type": "Preset", "value": {"_type": "PreviousWeek"}},
@@ -112,16 +156,16 @@ async def fetch_analytics_metric_data(
         )
         
         # Get CSAT percentage for email channel in custom date range
-        fetch_analytics_metric_data(
+        fetch_aggregated_data(
             metric_id="csat",
             timezone="America/New_York",
-            period_filter={"_type": "Custom", "value": {"from": "2024-01-01T00:00:00Z", "to": "2024-01-31T23:59:59Z"}},
+            period_filter={"_type": "Interval", "start": "2024-01-01T00:00:00Z", "end": "2024-01-31T23:59:59Z"},
             filters=[{"attribute": "channel", "values": ["email"]}],  # Required when using period_filter
             aggregations=["Percentage"]
         )
         
         # Get data using filters only (no period_filter or csid_filter)
-        fetch_analytics_metric_data(
+        fetch_aggregated_data(
             metric_id="closed_conversations",
             timezone="Europe/Copenhagen",
             filters=[{"attribute": "channel", "values": ["email"]}],
@@ -129,7 +173,7 @@ async def fetch_analytics_metric_data(
         )
         
         # Get data for specific conversations (filters optional when using csid_filter)
-        fetch_analytics_metric_data(
+        fetch_aggregated_data(
             metric_id="closed_conversations",
             timezone="UTC",
             csid_filter=[12345, 12346, 12347],
@@ -186,6 +230,14 @@ async def fetch_analytics_metric_data(
     #     "aggregations": ["Count"],
     #     "timezone": "Europe/Copenhagen"
     #   }
+    #   OR for custom intervals:
+    #   {
+    #     "id": "closed_conversations",
+    #     "periodFilter": {"_type": "Interval", "start": "2025-05-19T00:00:00Z", "end": "2025-11-19T23:59:59Z"},
+    #     "filters": [{"attribute": "channel", "values": ["email"]}],
+    #     "aggregations": ["Count"],
+    #     "timezone": "Europe/Copenhagen"
+    #   }
     # Structure 2: With csidFilter - filters optional
     #   {
     #     "id": "closed_conversations",
@@ -228,7 +280,7 @@ async def fetch_analytics_metric_data(
     
     # Log the exact payload being sent
     payload_json = json.dumps(request, indent=2)
-    print(f"[fetch_analytics_metric_data] Request payload:\n{payload_json}")
+    print(f"[fetch_aggregated_data] Request payload:\n{payload_json}")
     
     client = get_dixa_client()
     return client.post_analytics_metric_data(request=request)

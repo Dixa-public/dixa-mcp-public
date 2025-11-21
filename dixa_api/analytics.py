@@ -254,7 +254,10 @@ def post_analytics_metric_records_data(
             - csidFilter (optional): Array of conversation IDs to filter by
             - filters (optional): Array of filter objects
         page_key: Optional pagination key for retrieving the next page of results.
+            When provided, should be used as a query parameter with the same POST request and payload.
+            Can be used together with page_limit to change the number of results.
         page_limit: Optional limit for the number of results per page.
+            Can be used with or without page_key. When used with page_key, it overrides the page size encoded in the key.
 
     Returns:
         Dictionary containing the metric records data.
@@ -272,6 +275,8 @@ def post_analytics_metric_records_data(
 
     headers = {"Content-Type": "application/json", **self.headers}
     try:
+        # Always use POST request, even when pageKey is provided
+        # The pageKey is just a query parameter, but the same payload should be sent
         response = requests.post(url, json=request, headers=headers, params=params if params else None)
         response.raise_for_status()
         return response.json()
