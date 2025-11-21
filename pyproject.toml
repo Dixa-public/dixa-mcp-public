@@ -1,13 +1,36 @@
 [project]
 name = "dixa-mcp-public"
 version = "0.1.0"
-description = "Add your description here"
+description = "A Model Context Protocol (MCP) server that provides access to the Dixa API, allowing AI assistants to interact with Dixa organization data and services"
 readme = "README.md"
 requires-python = ">=3.8"
+authors = [
+    {name = "Dixa", email = "friends@dixa.com"}
+]
+maintainers = [
+    {name = "Dixa", email = "friends@dixa.com"}
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "dixa",
+    "api",
+    "ai",
+    "assistant",
+    "customer-support",
+    "fastmcp"
+]
 dependencies = [
     "fastmcp",
     "requests",
 ]
+[project.urls]
+Homepage = "https://github.com/Dixa-public/dixa-mcp-public"
+Documentation = "https://github.com/Dixa-public/dixa-mcp-public/blob/main/README.md"
+Repository = "https://github.com/Dixa-public/dixa-mcp-public.git"
+"Bug Tracker" = "https://github.com/Dixa-public/dixa-mcp-public/issues"
+"Dixa API Docs" = "https://docs.dixa.io/docs/"
+"FastMCP" = "https://gofastmcp.com"
 
 # Note: FastMCP Cloud will use requirements.txt if present
 # This pyproject.toml is kept for local development
