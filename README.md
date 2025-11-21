@@ -20,7 +20,14 @@ A Model Context Protocol (MCP) server that provides access to the Dixa API, allo
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Dixa-public/dixa-mcp-public.git
+cd dixa-mcp-public
+```
+
+Or using SSH:
+
+```bash
+git clone git@github.com:Dixa-public/dixa-mcp-public.git
 cd dixa-mcp-public
 ```
 
@@ -188,7 +195,7 @@ Connects to a live remote server (e.g., deployed on FastMCP Cloud or your own se
 }
 ```
 
-**Note**: Replace `https://dixa-mcp-public.fastmcp.app/mcp` with your actual remote server URL.
+**Note**: If you run the MCP server on your own server, replace `https://dixa-mcp-public.fastmcp.app/mcp` with your actual remote server URL.
 
 ### Configuration Summary
 
@@ -251,23 +258,23 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 - **`list_agents`**: List all agents/admins in the organization.
 - **`list_agents_presence`**: List presence status for all agents.
 - **`list_agent_teams`**: List teams that an agent belongs to.
-- **`add_agent`**: ⚠️ Create a new agent/admin (requires user confirmation).
-- **`modify_agent_partial`**: ⚠️ Partially update an agent (PATCH, requires user confirmation).
-- **`update_agent_full`**: ⚠️ Fully update an agent (PUT, requires user confirmation).
-- **`set_agent_working_channel`**: ⚠️ Set the working channel for an agent (requires user confirmation).
+- **`add_agent`**: Create a new agent/admin.
+- **`modify_agent_partial`**: Partially update an agent (PATCH).
+- **`update_agent_full`**: Fully update an agent (PUT).
+- **`set_agent_working_channel`**: Set the working channel for an agent.
 
 ### End User Tools
 
 - **`list_end_users`**: List all end users (customers) in the organization.
 - **`fetch_end_user_by_id`**: Get a specific end user by ID.
-- **`add_end_user`**: ⚠️ Create a new end user (requires user confirmation).
-- **`add_end_users_bulk`**: ⚠️ Create multiple end users in bulk (requires user confirmation).
-- **`modify_end_user_partial`**: ⚠️ Partially update an end user (PATCH, requires user confirmation).
-- **`modify_end_users_bulk`**: ⚠️ Partially update multiple end users in bulk (requires user confirmation).
-- **`update_end_user_full`**: ⚠️ Fully update an end user (PUT, requires user confirmation).
-- **`update_end_users_bulk`**: ⚠️ Fully update multiple end users in bulk (requires user confirmation).
+- **`add_end_user`**: Create a new end user.
+- **`add_end_users_bulk`**: Create multiple end users in bulk.
+- **`modify_end_user_partial`**: Partially update an end user (PATCH).
+- **`modify_end_users_bulk`**: Partially update multiple end users in bulk.
+- **`update_end_user_full`**: Fully update an end user (PUT).
+- **`update_end_users_bulk`**: Fully update multiple end users in bulk.
 - **`list_end_user_conversations`**: List all conversations for a specific end user.
-- **`anonymize_end_user`**: ⚠️ Anonymize an end user (GDPR compliance, typically irreversible, requires user confirmation).
+- **`anonymize_end_user`**: Anonymize an end user (GDPR compliance, typically irreversible).
 
 ### Conversation Tools
 
@@ -280,37 +287,37 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 - **`list_conversation_messages`**: List messages in a conversation.
 - **`list_organization_activity_log`**: List activity log entries across the organization.
 - **`list_conversation_ratings`**: List ratings for a conversation.
-- **`start_conversation`**: ⚠️ Create a new conversation (requires user confirmation).
-- **`import_conversations`**: ⚠️ Import conversations in bulk (requires user confirmation).
-- **`add_conversation_note`**: ⚠️ Add a note to a conversation (requires user confirmation).
-- **`add_conversation_notes_bulk`**: ⚠️ Add multiple notes to conversations in bulk (requires user confirmation).
-- **`tag_conversation`**: ⚠️ Add a tag to a conversation (requires user confirmation).
-- **`tag_conversation_bulk`**: ⚠️ Add tags to multiple conversations in bulk (requires user confirmation).
-- **`remove_tag_from_conversation`**: ⚠️ Remove a tag from a conversation (requires user confirmation).
-- **`assign_conversation_to_agent`**: ⚠️ Assign/claim a conversation to an agent (requires user confirmation).
-- **`close_conversation`**: ⚠️ Close a conversation (requires user confirmation).
-- **`reopen_conversation`**: ⚠️ Reopen a closed conversation (requires user confirmation).
-- **`link_conversation_to_parent`**: ⚠️ Link a conversation to a parent conversation (requires user confirmation).
-- **`set_conversation_followup_status`**: ⚠️ Set follow-up status for a conversation (requires user confirmation).
-- **`anonymize_conversation`**: ⚠️ Anonymize a conversation (GDPR compliance, typically irreversible, requires user confirmation).
-- **`anonymize_conversation_message`**: ⚠️ Anonymize a specific message in a conversation (GDPR compliance, typically irreversible, requires user confirmation).
+- **`start_conversation`**: Create a new conversation.
+- **`import_conversations`**: Import conversations in bulk.
+- **`add_conversation_note`**: Add a note to a conversation.
+- **`add_conversation_notes_bulk`**: Add multiple notes to conversations in bulk.
+- **`tag_conversation`**: Add a tag to a conversation.
+- **`tag_conversation_bulk`**: Add tags to multiple conversations in bulk.
+- **`remove_tag_from_conversation`**: Remove a tag from a conversation.
+- **`assign_conversation_to_agent`**: Assign/claim a conversation to an agent.
+- **`close_conversation`**: Close a conversation.
+- **`reopen_conversation`**: Reopen a closed conversation.
+- **`link_conversation_to_parent`**: Link a conversation to a parent conversation.
+- **`set_conversation_followup_status`**: Set follow-up status for a conversation.
+- **`anonymize_conversation`**: Anonymize a conversation (GDPR compliance, typically irreversible).
+- **`anonymize_conversation_message`**: Anonymize a specific message in a conversation (GDPR compliance, typically irreversible).
 
 ### Custom Attributes Tools
 
 - **`list_custom_attributes`**: List all custom attribute definitions.
 - **`fetch_custom_attribute_by_id`**: Get a specific custom attribute definition by ID.
-- **`update_conversation_custom_attributes`**: ⚠️ Update custom attributes for a conversation (requires user confirmation).
-- **`update_end_user_custom_attributes`**: ⚠️ Update custom attributes for an end user (requires user confirmation).
+- **`update_conversation_custom_attributes`**: Update custom attributes for a conversation.
+- **`update_end_user_custom_attributes`**: Update custom attributes for an end user.
 
 ### Tag Tools
 
 - **`list_tags`**: List all tags in the organization.
 - **`fetch_tag_by_id`**: Get a specific tag by ID.
 - **`list_conversation_tags`**: List tags on a specific conversation.
-- **`add_tag`**: ⚠️ Create a new tag (requires user confirmation).
-- **`activate_tag`**: ⚠️ Activate a tag (requires user confirmation).
-- **`deactivate_tag`**: ⚠️ Deactivate a tag (requires user confirmation).
-- **`remove_tag`**: ⚠️ Delete a tag (requires user confirmation).
+- **`add_tag`**: Create a new tag.
+- **`activate_tag`**: Activate a tag.
+- **`deactivate_tag`**: Deactivate a tag.
+- **`remove_tag`**: Delete a tag.
 
 ### Team Tools
 
@@ -318,10 +325,10 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 - **`fetch_team_by_id`**: Get a specific team by ID.
 - **`list_team_agents`**: List agents in a team.
 - **`list_team_presence`**: List presence status for agents in a team.
-- **`add_team`**: ⚠️ Create a new team (requires user confirmation).
-- **`add_agents_to_team`**: ⚠️ Add agents to a team (requires user confirmation).
-- **`remove_agents_from_team`**: ⚠️ Remove agents from a team (requires user confirmation).
-- **`remove_team`**: ⚠️ Delete a team (requires user confirmation).
+- **`add_team`**: Create a new team.
+- **`add_agents_to_team`**: Add agents to a team.
+- **`remove_agents_from_team`**: Remove agents from a team.
+- **`remove_team`**: Delete a team.
 
 ### Queue Tools
 
@@ -330,19 +337,19 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 - **`check_queue_availability`**: Check if a queue is available.
 - **`check_conversation_queue_position`**: Check the position of a conversation in a queue.
 - **`list_queue_agents`**: List agents assigned to a queue.
-- **`add_queue`**: ⚠️ Create a new queue (requires user confirmation).
-- **`assign_agents_to_queue`**: ⚠️ Assign agents to a queue (requires user confirmation).
-- **`remove_agents_from_queue`**: ⚠️ Remove agents from a queue (requires user confirmation).
+- **`add_queue`**: Create a new queue.
+- **`assign_agents_to_queue`**: Assign agents to a queue.
+- **`remove_agents_from_queue`**: Remove agents from a queue.
 
 ### Knowledge Base Tools
 
 - **`list_knowledge_articles`**: List all knowledge base articles.
 - **`fetch_knowledge_article_by_id`**: Get a specific knowledge base article by ID.
 - **`list_knowledge_categories`**: List all knowledge base categories.
-- **`add_knowledge_article`**: ⚠️ Create a new knowledge base article (requires user confirmation).
-- **`modify_knowledge_article`**: ⚠️ Update a knowledge base article (requires user confirmation).
-- **`remove_knowledge_article`**: ⚠️ Delete a knowledge base article (requires user confirmation).
-- **`add_knowledge_category`**: ⚠️ Create a new knowledge base category (requires user confirmation).
+- **`add_knowledge_article`**: Create a new knowledge base article.
+- **`modify_knowledge_article`**: Update a knowledge base article.
+- **`remove_knowledge_article`**: Delete a knowledge base article.
+- **`add_knowledge_category`**: Create a new knowledge base category.
 
 ### Settings Tools
 
@@ -377,7 +384,7 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 
 ### Important Notes
 
-- **⚠️ Modification Tools**: All tools marked with ⚠️ modify data and require explicit user confirmation before execution.
+- **Modification Tools**: All modification tools (create, update, delete operations) modify data and require explicit user confirmation before execution.
 - **API Key**: All tools automatically extract the API key from the Authorization header (for HTTP/SSE) or configuration (for subprocess).
 - **ID Requirements**: Most tools require entity IDs (conversation_id, agent_id, etc.) which must be obtained first using the corresponding "list" or "fetch" tools.
 - **Analytics Workflow**: Always start with `prepare_analytics_metric_query` to discover available metrics, then use `fetch_aggregated_data` for summary statistics.
@@ -604,12 +611,34 @@ def get_new_endpoint(self, param: str) -> Dict[str, Any]:
 
 ## License
 
-[Add your license here]
+This project uses the following dependencies and services:
+
+### FastMCP
+
+This project is built using [FastMCP](https://gofastmcp.com), a framework for building Model Context Protocol servers.
+
+- **Website**: https://gofastmcp.com
+- **License**: Please refer to the [FastMCP license](https://github.com/jlowin/fastmcp) for license information
+
+### FastMCP Cloud
+
+For remote deployments, this project can be hosted on [FastMCP Cloud](https://fastmcp.app).
+
+- **Website**: https://fastmcp.app
+- **Service**: FastMCP Cloud provides hosting for MCP servers
+
+### Dixa API
+
+This project integrates with the Dixa API to provide access to Dixa organization data and services.
+
+- **API Documentation**: https://docs.dixa.io/docs/
+- **License**: Please refer to the Dixa API documentation for API-specific licensing and terms
 
 ## Support
 
 For issues and questions:
 - Check the troubleshooting section
+- Review [Dixa API documentation](https://docs.dixa.io/docs/)
 - Review FastMCP documentation: https://gofastmcp.com
 - Review MCP documentation: https://modelcontextprotocol.io
 
