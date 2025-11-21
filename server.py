@@ -29,16 +29,16 @@ mcp = FastMCP(
         - Agents (Customer Service Agents): Customer service representatives who handle and resolve customer inquiries. Agents work within the Dixa platform to respond to conversations, manage customer relationships, and provide support across all channels. Agents can be assigned to conversations, work in teams, and have presence status indicating their availability.
         - Admins (Administrators): Agents with administrative privileges who manage the Dixa organization. Admins configure settings, manage agents and teams, set up queues, configure business hours, manage contact endpoints, and oversee analytics and performance. In the Dixa API, both agents and admins are represented under the "agents" entity.
         
-        Available tool categories:
+        Available Tool Categories:
         - Organization: Get organization information
         - Agents: Manage agents/admins (get, list, create, update, patch, manage presence and teams)
         - End Users: Manage end users/customers (get, list, create, update, patch, delete, anonymize, list conversations)
         - Settings: Manage contact endpoints, business hours schedules and status
         - Conversations: Manage conversations (get, create, add notes, tag, claim, close, anonymize, search, etc.)
         - Custom Attributes: Manage custom attributes for conversations and end users
-        - Analytics: Get analytics data (metrics, records, filter values) - requires discovering available metrics/records first
+        - Analytics: Get aggregated analytics data (metrics, filter values) - requires discovering available metrics first
         
-        Important notes:
+        Important Notes:
         - All modification endpoints (create, update, patch, delete) require explicit user confirmation before execution
         - The API key is automatically extracted from the Authorization header or configuration
         - Read-only endpoints (get, list) do not require confirmation
@@ -76,24 +76,14 @@ mcp = FastMCP(
         7. Custom Attributes Operations:
            - To update custom attributes: First use `list_custom_attributes` to get the list of custom attribute definitions and their IDs. The custom_attributes parameter requires a dictionary mapping custom attribute IDs (UUIDs) to values. Then use `update_conversation_custom_attributes` or `update_end_user_custom_attributes`.
         
-        8. Analytics Operations:
-           - 🚨 MANDATORY WORKFLOW: Use aggregated data for all analytics queries. Aggregated data provides summary statistics (counts, percentages, averages) that answer most analytics questions.
-           - Step 1 - Aggregated Data (MANDATORY FIRST): First call `prepare_analytics_metric_query` without metric_id to discover available metrics. Then call `prepare_analytics_metric_query` with a metric_id to get all information needed (filters, aggregations, filter values) in one call. Finally, use `fetch_aggregated_data` to fetch the aggregated metric data. Review these results first.
+        8. Analytics Operations (MANDATORY WORKFLOW):
+           - Use aggregated data for all analytics queries. Aggregated data provides summary statistics (counts, percentages, averages) that answer most analytics questions.
+           - Step 1: Call `prepare_analytics_metric_query` without metric_id to discover available metrics.
+           - Step 2: Call `prepare_analytics_metric_query` with a specific metric_id to get all information needed (filters, aggregations, filter values) in one call.
+           - Step 3: Use `fetch_aggregated_data` to fetch the aggregated metric data with your desired filters and aggregations.
            - Understanding Aggregation Results: For nested/pre-aggregated metrics (e.g., "conversation_assignments_per_agent"), data is first grouped (e.g., by agent) then aggregated. "Count" refers to the number of groups/entries matching filters, NOT the total count of underlying items. "Sum" refers to the total sum across all groups. Example: Count=22 and Sum=1171 for "conversation_assignments_per_agent" means 22 agents have assignments (Count = number of agent groups) and 1171 total assignments across those agents (Sum = total assignments). To get per-agent details, you would need separate calls filtering by individual agent_id for each agent.
-           - NOTE: Unaggregated data tools are currently disabled to prevent conversation length errors. Use aggregated data only.
-           # NOTE: Unaggregated data tools are commented out to prevent conversation length errors
-           # - Step 2 - Unaggregated Data (ONLY IF NEEDED): Only if aggregated data is insufficient, then proceed to unaggregated records. First call `prepare_analytics_record_query` without record_id to discover available records. Then call `prepare_analytics_record_query` with a record_id to get all information needed (filters, filter values) in one call. Finally, use `fetch_unaggregated_data` to fetch the detailed record data.
-           - Important: Analytics endpoints require a discovery workflow. Always start by calling the prepare tools without IDs to find available metrics/records, then call them again with specific IDs to get all information, and finally query the data.
-           # - Pagination for unaggregated data: When using `fetch_unaggregated_data`, you MUST collect ALL available data by paginating through all pages. Use page_limit of 100-300 (maximum 300) for the first request. Check if the response contains a "pageKey" field - if it does, make another call with the same payload but using page_key (page_limit not needed). Continue this process until no "pageKey" is returned, indicating you've collected all available data. Always combine data from all pages for complete analysis.
-           # - Context Management for Large Responses: When processing large unaggregated data responses (especially with multiple pages), you MUST optimize context usage:
-           #   * Extract only relevant information based on the query context - don't store everything
-           #   * Summarize large datasets when possible (e.g., "Found 500 records with average value X" instead of storing all 500 records)
-           #   * Store only essential fields needed to answer the question (IDs, timestamps, key values)
-           #   * Ignore verbose metadata like "_type" fields and nested structures unless specifically needed
-           #   * Focus on field "value" and "name" properties which contain the actual data
-           #   * Consider using aggregated data summaries when available instead of storing all unaggregated records
-           #   * Let the user's question guide what to extract - if they ask for a count, store the count, not all records
-           #   * The full response data is always available in tool responses, so you don't need to store everything in context
+           - Important: Analytics endpoints require a discovery workflow. Always start by calling the prepare tool without IDs to find available metrics, then call it again with specific IDs to get all information, and finally query the data.
+           - Note: Unaggregated data tools are currently disabled. Use aggregated data only.
         
         General Pattern: When a tool requires an ID parameter (tag_id, conversation_id, agent_id, team_id, queue_id, etc.), you must first use the corresponding "list" or "fetch" tool to find that ID. Always check if the entity exists before trying to use it, or add it first if it doesn't exist.
     """
