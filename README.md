@@ -43,9 +43,160 @@ Or install from the project:
 pip install -e .
 ```
 
-## Configuration
+## Running Locally
 
-The server supports multiple authentication methods and transport options. Choose the setup that best fits your use case.
+### Start the Server
+
+After installation, you can run the server locally:
+
+#### Subprocess Mode (Default for Claude Desktop)
+
+```bash
+source venv/bin/activate
+python server.py
+```
+
+Or with API key via command line:
+
+```bash
+source venv/bin/activate
+python server.py --api-key your-dixa-api-key-here
+```
+
+#### HTTP/SSE Mode (For Remote Access)
+
+Start the HTTP server on a specific port:
+
+```bash
+source venv/bin/activate
+python server.py --http 8000
+```
+
+The server will be available at `http://localhost:8000/mcp`.
+
+**Note**: For local HTTP servers, you'll need to use `mcp-remote` with the `--allow-http` flag when configuring Claude Desktop.
+
+## Claude Desktop Configuration
+
+The Dixa MCP server can be configured in Claude Desktop in three ways:
+
+### 1. dixa-local (Local Subprocess)
+
+Runs the project locally as a subprocess. This is the simplest setup for local development.
+
+**Configuration File**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
+
+```json
+{
+  "mcpServers": {
+    "dixa-local": {
+      "command": "<path-to-venv-python>/python",
+      "args": [
+        "<path-to-repo>/dixa-mcp-public/server.py",
+        "--api-key",
+        "<your-api-key>"
+      ]
+    }
+  }
+}
+```
+
+**Example** (macOS):
+```json
+{
+  "mcpServers": {
+    "dixa-local": {
+      "command": "/Users/username/dixa-mcp-public/venv/bin/python",
+      "args": [
+        "/Users/username/dixa-mcp-public/server.py",
+        "--api-key",
+        "your-dixa-api-key-here"
+      ]
+    }
+  }
+}
+```
+
+**Alternative**: You can also use environment variables instead of command-line args:
+
+```json
+{
+  "mcpServers": {
+    "dixa-local": {
+      "command": "/Users/username/dixa-mcp-public/venv/bin/python",
+      "args": [
+        "/Users/username/dixa-mcp-public/server.py"
+      ],
+      "env": {
+        "DIXA_API_KEY": "your-dixa-api-key-here"
+      }
+    }
+  }
+}
+```
+
+### 2. dixa-local-remote (Local HTTP Server)
+
+Replicates a remote setup locally. The server runs as an HTTP server on your machine, and Claude Desktop connects via `mcp-remote`.
+
+**Step 1**: Start the HTTP server locally:
+
+```bash
+cd dixa-mcp-public
+source venv/bin/activate
+python server.py --http 8000
+```
+
+**Step 2**: Configure Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "dixa-local-remote": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://localhost:8000/mcp",
+        "--header",
+        "Authorization: Bearer <your-api-key>",
+        "--allow-http"
+      ]
+    }
+  }
+}
+```
+
+**Note**: The `--allow-http` flag is required for local HTTP servers (not needed for HTTPS).
+
+### 3. dixa-remote (Live Remote Setup)
+
+Connects to a live remote server (e.g., deployed on FastMCP Cloud or your own server).
+
+```json
+{
+  "mcpServers": {
+    "dixa-remote": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://dixa-mcp-public.fastmcp.app/mcp",
+        "--header",
+        "Authorization: Bearer <your-api-key>"
+      ]
+    }
+  }
+}
+```
+
+**Note**: Replace `https://dixa-mcp-public.fastmcp.app/mcp` with your actual remote server URL.
+
+### Configuration Summary
+
+| Method | Use Case | Server Command | Notes |
+|-------|----------|----------------|-------|
+| `dixa-local` | Local development | `python server.py --api-key <key>` | Simplest setup, runs as subprocess |
+| `dixa-local-remote` | Testing remote setup locally | `python server.py --http 8000` | Requires `--allow-http` flag |
+| `dixa-remote` | Production/remote deployment | Server runs remotely | No local server needed |
 
 ### Authentication Methods
 
@@ -56,116 +207,6 @@ The server supports API key authentication through multiple methods (in priority
 3. **Environment Variable**: Set `DIXA_API_KEY` environment variable
 
 **Note**: For remote HTTP/SSE servers, the API key is automatically extracted from the Authorization header sent by `mcp-remote`. You don't need to pass it as a tool parameter.
-
-### Transport Options
-
-#### Option 1: Subprocess Transport (Claude Desktop)
-
-This is the default transport for Claude Desktop integration.
-
-**Configuration File**: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
-
-##### Method A: Environment Variable (Recommended)
-
-```json
-{
-    "mcpServers": {
-        "dixa-local": {
-            "command": "/path/to/venv/bin/python",
-            "args": ["/path/to/dixa-mcp-public/server.py"],
-            "env": {
-                "DIXA_API_KEY": "your-dixa-api-key-here"
-            }
-        }
-    }
-}
-```
-
-##### Method B: Command-Line Arguments
-
-```json
-{
-    "mcpServers": {
-        "dixa-local": {
-            "command": "/path/to/venv/bin/python",
-            "args": [
-                "/path/to/dixa-mcp-public/server.py",
-                "--api-key",
-                "your-dixa-api-key-here"
-            ]
-        }
-    }
-}
-```
-
-**Note**: Replace `/path/to/venv/bin/python` and `/path/to/dixa-mcp-public/server.py` with your actual paths.
-
-#### Option 2: HTTP/SSE Transport (Remote Servers)
-
-For remote access or when you want to use Bearer token authentication via HTTP headers.
-
-##### Step 1: Start the HTTP Server
-
-```bash
-cd dixa-mcp-public
-source venv/bin/activate
-python server.py --http 8000
-```
-
-The server will start on `http://localhost:8000/mcp` (or your specified port).
-
-For remote servers, use:
-```bash
-python server.py --http 8000 http
-```
-
-##### Step 2: Configure Claude Desktop
-
-Claude Desktop uses `mcp-remote` to connect to remote MCP servers. Configure it in your `claude_desktop_config.json`:
-
-**For Local Testing**:
-
-```json
-{
-    "mcpServers": {
-        "dixa-remote": {
-            "command": "npx",
-            "args": [
-                "mcp-remote",
-                "http://localhost:8000/mcp",
-                "--header",
-                "Authorization: Bearer your-dixa-api-key-here",
-                "--allow-http"
-            ]
-        }
-    }
-}
-```
-
-**For Remote Servers** (e.g., FastMCP Cloud):
-
-```json
-{
-    "mcpServers": {
-        "dixa-remote": {
-            "command": "npx",
-            "args": [
-                "mcp-remote",
-                "https://your-server.fastmcp.app/mcp",
-                "--header",
-                "Authorization: Bearer your-dixa-api-key-here"
-            ]
-        }
-    }
-}
-```
-
-**Important Notes**:
-- The `--header` flag passes the Authorization header to the server
-- The `--allow-http` flag is required for local HTTP servers (not needed for HTTPS)
-- The API key is automatically extracted from the Authorization header by the server
-- Replace `your-dixa-api-key-here` with your actual Dixa API key
-- For remote servers, replace the URL with your deployed server's URL
 
 ## Running the Server
 
@@ -198,33 +239,148 @@ python server.py --api-key your-dixa-api-key-here
 
 ## Available Tools
 
-### `get_organization_info`
+The Dixa MCP server provides comprehensive access to the Dixa API through organized tool categories. All tools automatically extract the API key from the Authorization header or configuration.
 
-Retrieves organization information from the Dixa API.
+### Organization Tools
 
-**Parameters**: None (API key is automatically extracted from the Authorization header or configuration)
+- **`fetch_organization_details`**: Retrieves organization information from the Dixa API.
 
-**Returns**: Dictionary containing organization information.
+### Agent Tools
 
-**Example Usage**:
-```python
-# API key is automatically extracted from:
-# - Authorization header (for remote HTTP/SSE servers)
-# - Command-line arguments (for local subprocess servers)
-# - DIXA_API_KEY environment variable (fallback)
-result = get_organization_info()
-```
+- **`fetch_agent_by_id`**: Get a specific agent/admin by ID.
+- **`list_agents`**: List all agents/admins in the organization.
+- **`list_agents_presence`**: List presence status for all agents.
+- **`list_agent_teams`**: List teams that an agent belongs to.
+- **`add_agent`**: ⚠️ Create a new agent/admin (requires user confirmation).
+- **`modify_agent_partial`**: ⚠️ Partially update an agent (PATCH, requires user confirmation).
+- **`update_agent_full`**: ⚠️ Fully update an agent (PUT, requires user confirmation).
+- **`set_agent_working_channel`**: ⚠️ Set the working channel for an agent (requires user confirmation).
 
-**Note**: For remote servers, ensure the Authorization header is configured in your Claude Desktop config as shown in the Configuration section.
+### End User Tools
 
-### `greet`
+- **`list_end_users`**: List all end users (customers) in the organization.
+- **`fetch_end_user_by_id`**: Get a specific end user by ID.
+- **`add_end_user`**: ⚠️ Create a new end user (requires user confirmation).
+- **`add_end_users_bulk`**: ⚠️ Create multiple end users in bulk (requires user confirmation).
+- **`modify_end_user_partial`**: ⚠️ Partially update an end user (PATCH, requires user confirmation).
+- **`modify_end_users_bulk`**: ⚠️ Partially update multiple end users in bulk (requires user confirmation).
+- **`update_end_user_full`**: ⚠️ Fully update an end user (PUT, requires user confirmation).
+- **`update_end_users_bulk`**: ⚠️ Fully update multiple end users in bulk (requires user confirmation).
+- **`list_end_user_conversations`**: List all conversations for a specific end user.
+- **`anonymize_end_user`**: ⚠️ Anonymize an end user (GDPR compliance, typically irreversible, requires user confirmation).
 
-A simple greeting tool for testing.
+### Conversation Tools
 
-**Parameters**:
-- `name` (required): Name to greet.
+- **`fetch_conversation_by_id`**: Get a specific conversation by ID.
+- **`search_conversations`**: Search conversations with filters (strategy, conditions, pagination).
+- **`list_conversation_flows`**: List conversation flows for a conversation.
+- **`list_conversation_activity_log`**: List activity log entries for a conversation.
+- **`list_conversation_notes`**: List notes for a conversation.
+- **`list_linked_conversations`**: List conversations linked to a parent conversation.
+- **`list_conversation_messages`**: List messages in a conversation.
+- **`list_organization_activity_log`**: List activity log entries across the organization.
+- **`list_conversation_ratings`**: List ratings for a conversation.
+- **`start_conversation`**: ⚠️ Create a new conversation (requires user confirmation).
+- **`import_conversations`**: ⚠️ Import conversations in bulk (requires user confirmation).
+- **`add_conversation_note`**: ⚠️ Add a note to a conversation (requires user confirmation).
+- **`add_conversation_notes_bulk`**: ⚠️ Add multiple notes to conversations in bulk (requires user confirmation).
+- **`tag_conversation`**: ⚠️ Add a tag to a conversation (requires user confirmation).
+- **`tag_conversation_bulk`**: ⚠️ Add tags to multiple conversations in bulk (requires user confirmation).
+- **`remove_tag_from_conversation`**: ⚠️ Remove a tag from a conversation (requires user confirmation).
+- **`assign_conversation_to_agent`**: ⚠️ Assign/claim a conversation to an agent (requires user confirmation).
+- **`close_conversation`**: ⚠️ Close a conversation (requires user confirmation).
+- **`reopen_conversation`**: ⚠️ Reopen a closed conversation (requires user confirmation).
+- **`link_conversation_to_parent`**: ⚠️ Link a conversation to a parent conversation (requires user confirmation).
+- **`set_conversation_followup_status`**: ⚠️ Set follow-up status for a conversation (requires user confirmation).
+- **`anonymize_conversation`**: ⚠️ Anonymize a conversation (GDPR compliance, typically irreversible, requires user confirmation).
+- **`anonymize_conversation_message`**: ⚠️ Anonymize a specific message in a conversation (GDPR compliance, typically irreversible, requires user confirmation).
 
-**Returns**: Greeting message.
+### Custom Attributes Tools
+
+- **`list_custom_attributes`**: List all custom attribute definitions.
+- **`fetch_custom_attribute_by_id`**: Get a specific custom attribute definition by ID.
+- **`update_conversation_custom_attributes`**: ⚠️ Update custom attributes for a conversation (requires user confirmation).
+- **`update_end_user_custom_attributes`**: ⚠️ Update custom attributes for an end user (requires user confirmation).
+
+### Tag Tools
+
+- **`list_tags`**: List all tags in the organization.
+- **`fetch_tag_by_id`**: Get a specific tag by ID.
+- **`list_conversation_tags`**: List tags on a specific conversation.
+- **`add_tag`**: ⚠️ Create a new tag (requires user confirmation).
+- **`activate_tag`**: ⚠️ Activate a tag (requires user confirmation).
+- **`deactivate_tag`**: ⚠️ Deactivate a tag (requires user confirmation).
+- **`remove_tag`**: ⚠️ Delete a tag (requires user confirmation).
+
+### Team Tools
+
+- **`list_teams`**: List all teams in the organization.
+- **`fetch_team_by_id`**: Get a specific team by ID.
+- **`list_team_agents`**: List agents in a team.
+- **`list_team_presence`**: List presence status for agents in a team.
+- **`add_team`**: ⚠️ Create a new team (requires user confirmation).
+- **`add_agents_to_team`**: ⚠️ Add agents to a team (requires user confirmation).
+- **`remove_agents_from_team`**: ⚠️ Remove agents from a team (requires user confirmation).
+- **`remove_team`**: ⚠️ Delete a team (requires user confirmation).
+
+### Queue Tools
+
+- **`list_queues`**: List all queues in the organization.
+- **`fetch_queue_by_id`**: Get a specific queue by ID.
+- **`check_queue_availability`**: Check if a queue is available.
+- **`check_conversation_queue_position`**: Check the position of a conversation in a queue.
+- **`list_queue_agents`**: List agents assigned to a queue.
+- **`add_queue`**: ⚠️ Create a new queue (requires user confirmation).
+- **`assign_agents_to_queue`**: ⚠️ Assign agents to a queue (requires user confirmation).
+- **`remove_agents_from_queue`**: ⚠️ Remove agents from a queue (requires user confirmation).
+
+### Knowledge Base Tools
+
+- **`list_knowledge_articles`**: List all knowledge base articles.
+- **`fetch_knowledge_article_by_id`**: Get a specific knowledge base article by ID.
+- **`list_knowledge_categories`**: List all knowledge base categories.
+- **`add_knowledge_article`**: ⚠️ Create a new knowledge base article (requires user confirmation).
+- **`modify_knowledge_article`**: ⚠️ Update a knowledge base article (requires user confirmation).
+- **`remove_knowledge_article`**: ⚠️ Delete a knowledge base article (requires user confirmation).
+- **`add_knowledge_category`**: ⚠️ Create a new knowledge base category (requires user confirmation).
+
+### Settings Tools
+
+- **`list_contact_endpoints`**: List all contact endpoints (channels).
+- **`fetch_contact_endpoint_by_id`**: Get a specific contact endpoint by ID.
+- **`check_business_hours_status`**: Check if business hours are currently active.
+- **`list_business_hours_schedules`**: List all business hours schedules.
+
+### Analytics Tools
+
+- **`prepare_analytics_metric_query`**: Prepare analytics metric queries by discovering available metrics, filters, aggregations, and filter values. Use this before calling `fetch_aggregated_data`.
+- **`fetch_aggregated_data`**: Fetch aggregated (summary) analytics data for metrics. Provides summary statistics like counts, percentages, averages. **Always start with this tool** before considering unaggregated data.
+
+**Note**: Unaggregated data tools (`prepare_analytics_record_query` and `fetch_unaggregated_data`) are currently disabled to prevent conversation length errors. Use aggregated data tools only.
+
+### Tool Categories Summary
+
+| Category | Read-Only Tools | Modification Tools | Total |
+|----------|----------------|-------------------|-------|
+| Organization | 1 | 0 | 1 |
+| Agents | 4 | 4 | 8 |
+| End Users | 3 | 7 | 10 |
+| Conversations | 9 | 11 | 20 |
+| Custom Attributes | 2 | 2 | 4 |
+| Tags | 3 | 4 | 7 |
+| Teams | 4 | 4 | 8 |
+| Queues | 5 | 3 | 8 |
+| Knowledge Base | 3 | 4 | 7 |
+| Settings | 4 | 0 | 4 |
+| Analytics | 2 | 0 | 2 |
+| **Total** | **40** | **39** | **79** |
+
+### Important Notes
+
+- **⚠️ Modification Tools**: All tools marked with ⚠️ modify data and require explicit user confirmation before execution.
+- **API Key**: All tools automatically extract the API key from the Authorization header (for HTTP/SSE) or configuration (for subprocess).
+- **ID Requirements**: Most tools require entity IDs (conversation_id, agent_id, etc.) which must be obtained first using the corresponding "list" or "fetch" tools.
+- **Analytics Workflow**: Always start with `prepare_analytics_metric_query` to discover available metrics, then use `fetch_aggregated_data` for summary statistics.
 
 ## Local Testing
 
