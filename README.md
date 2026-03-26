@@ -1,5 +1,16 @@
 # Dixa MCP Server
 
+## :warning: Beta Disclaimer
+
+This project is currently in beta and provided as-is.
+
+By using this repository, you acknowledge that:
+- It may contain bugs, incomplete features, or breaking changes
+- Usage is entirely at your own risk
+- This is an open-source project and is **not supported by Dixa's official support channels**
+
+For issues or contributions, please use GitHub Issues.
+
 A Model Context Protocol (MCP) server that provides access to the Dixa API, allowing AI assistants to interact with Dixa organization data and services.
 
 ## Features
@@ -641,4 +652,3 @@ For issues and questions:
 - Review [Dixa API documentation](https://docs.dixa.io/docs/)
 - Review FastMCP documentation: https://gofastmcp.com
 - Review MCP documentation: https://modelcontextprotocol.io
-

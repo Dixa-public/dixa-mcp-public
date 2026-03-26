@@ -1,5 +1,16 @@
 # Dixa MCP Server - Getting Started
 
+## :warning: Beta Disclaimer
+
+This project is currently in beta and provided as-is.
+
+By using this repository, you acknowledge that:
+- It may contain bugs, incomplete features, or breaking changes
+- Usage is entirely at your own risk
+- This is an open-source project and is **not supported by Dixa's official support channels**
+
+For issues or contributions, please use GitHub Issues.
+
 Connect your AI assistant to your Dixa account and access your customer service data directly through AI conversations.
 
 ## What is the Dixa MCP Server?
@@ -275,4 +286,3 @@ For technical details and advanced configuration options, see the main [README.m
 ## License
 
 This project uses FastMCP and integrates with the Dixa API. Please refer to the respective documentation for licensing information.
-
