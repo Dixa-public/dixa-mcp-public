@@ -1,5 +1,7 @@
 # Dixa MCP Server - Getting Started
 
+Connect your AI assistant to your Dixa account and access your customer service data directly through AI conversations.
+
 ## :warning: Beta Disclaimer
 
 This project is currently in beta and provided as-is.
@@ -9,9 +11,7 @@ By using this repository, you acknowledge that:
 - Usage is entirely at your own risk
 - This is an open-source project and is **not supported by Dixa's official support channels**
 
-For issues or contributions, please use GitHub Issues.
-
-Connect your AI assistant to your Dixa account and access your customer service data directly through AI conversations.
+For issues or contributions, please use [GitHub Issues](https://github.com/Dixa-public/dixa-mcp-public/issues).
 
 ## What is the Dixa MCP Server?
 
