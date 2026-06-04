@@ -409,6 +409,62 @@ def update_conversation_close(
     
 
 
+def update_conversation_transfer_queue(
+    self,
+    conversation_id: str,
+    queue_id: str,
+    user_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Transfer a conversation to a target queue.
+        
+    Args:
+        conversation_id: The ID of the conversation to transfer (required).
+        queue_id: The ID of the target queue (required).
+        user_id: The ID of the agent/admin originating the transfer (optional).
+        
+    Returns:
+        Dictionary with success status. On success (204), returns {"success": True, "message": "Conversation transferred to queue successfully"}.
+        On error, returns the error response.
+        
+    Raises:
+        HTTPError: If the API returns an HTTP error status (4xx, 5xx).
+        RequestException: If there's an error making the request.
+    """
+    url = f"{self.base_url}/conversations/{conversation_id}/transfer/queue"
+        
+    payload = {
+        "queueId": queue_id
+    }
+    if user_id:
+        payload["userId"] = user_id
+        
+    headers = {
+        "Content-Type": "application/json",
+        **self.headers
+    }
+        
+    try:
+        response = requests.put(url, json=payload, headers=headers)
+        response.raise_for_status()
+        if response.status_code == 204:
+            return {"success": True, "message": "Conversation transferred to queue successfully"}
+        if response.content:
+            return response.json()
+        return {"success": True}
+    except HTTPError as e:
+        error_msg = f"HTTP {response.status_code} error: {e}"
+        try:
+            error_detail = response.json()
+            error_msg += f" - {error_detail}"
+        except ValueError:
+            error_msg += f" - {response.text}"
+        raise HTTPError(error_msg, response=response) from e
+    except RequestException as e:
+        raise RequestException(f"Request failed: {e}") from e
+    
+
+
 def create_conversation(
     self,
     requester_id: str,

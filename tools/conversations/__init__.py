@@ -22,6 +22,7 @@ from tools.conversations.anonymize_conversation_message import anonymize_convers
 from tools.conversations.tag_conversation_bulk import tag_conversation_bulk
 from tools.conversations.assign_conversation_to_agent import assign_conversation_to_agent
 from tools.conversations.close_conversation import close_conversation
+from tools.conversations.transfer_conversation_to_queue import transfer_conversation_to_queue
 from tools.conversations.link_conversation_to_parent import link_conversation_to_parent
 from tools.conversations.set_conversation_followup_status import set_conversation_followup_status
 from tools.conversations.reopen_conversation import reopen_conversation
@@ -47,6 +48,7 @@ __all__ = [
     "tag_conversation_bulk",
     "assign_conversation_to_agent",
     "close_conversation",
+    "transfer_conversation_to_queue",
     "link_conversation_to_parent",
     "set_conversation_followup_status",
     "reopen_conversation",

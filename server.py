@@ -57,6 +57,7 @@ mcp = FastMCP(
            - To create a conversation: You need a requester_id (end user). Use `list_end_users` to find an existing end user, or `add_end_user` if they don't exist. For outbound messages, you also need an agent_id from `list_agents`.
            - To claim a conversation: You need both conversation_id (from search/fetch) and agent_id (from `list_agents`). Use `assign_conversation_to_agent`.
            - To link conversations: You need both conversation_id and parent_conversation_id, both obtained from `fetch_conversation_by_id` or search. Use `link_conversation_to_parent`.
+           - To transfer a conversation to a queue: You need both conversation_id (from search/fetch) and queue_id (from `list_queues`). Use `transfer_conversation_to_queue`.
         
         3. Agent Assignment Operations:
            - To assign agents to teams: First use `list_agents` to find agent IDs, then use `list_teams` to find the team_id, then use `add_agents_to_team`.
@@ -314,7 +315,7 @@ print("[MonkeyPatch] Set up property interceptors for app middleware injection",
 from tools.organization import fetch_organization_details
 from tools.agents import fetch_agent_by_id, list_agents, list_agents_presence, list_agent_teams, add_agent, modify_agent_partial, update_agent_full, set_agent_working_channel
 from tools.settings import list_contact_endpoints, fetch_contact_endpoint_by_id, check_business_hours_status, list_business_hours_schedules
-from tools.conversations import fetch_conversation_by_id, list_conversation_flows, list_conversation_activity_log, list_conversation_notes, list_linked_conversations, list_conversation_messages, list_organization_activity_log, list_conversation_ratings, search_conversations, start_conversation, import_conversations, add_conversation_note, add_conversation_notes_bulk, anonymize_conversation, anonymize_conversation_message, tag_conversation_bulk, assign_conversation_to_agent, close_conversation, link_conversation_to_parent, set_conversation_followup_status, reopen_conversation, tag_conversation, remove_tag_from_conversation
+from tools.conversations import fetch_conversation_by_id, list_conversation_flows, list_conversation_activity_log, list_conversation_notes, list_linked_conversations, list_conversation_messages, list_organization_activity_log, list_conversation_ratings, search_conversations, start_conversation, import_conversations, add_conversation_note, add_conversation_notes_bulk, anonymize_conversation, anonymize_conversation_message, tag_conversation_bulk, assign_conversation_to_agent, close_conversation, transfer_conversation_to_queue, link_conversation_to_parent, set_conversation_followup_status, reopen_conversation, tag_conversation, remove_tag_from_conversation
 from tools.custom_attributes import fetch_custom_attribute_by_id, list_custom_attributes, update_conversation_custom_attributes, update_end_user_custom_attributes
 from tools.users import list_end_users, fetch_end_user_by_id, add_end_user, add_end_users_bulk, modify_end_user_partial, modify_end_users_bulk, update_end_user_full, update_end_users_bulk, list_end_user_conversations, anonymize_end_user
 from tools.knowledge import list_knowledge_articles, fetch_knowledge_article_by_id, add_knowledge_article, modify_knowledge_article, remove_knowledge_article, list_knowledge_categories, add_knowledge_category
@@ -358,6 +359,7 @@ mcp.tool(update_conversation_custom_attributes)
 mcp.tool(tag_conversation_bulk)
 mcp.tool(assign_conversation_to_agent)
 mcp.tool(close_conversation)
+mcp.tool(transfer_conversation_to_queue)
 mcp.tool(link_conversation_to_parent)
 mcp.tool(set_conversation_followup_status)
 mcp.tool(reopen_conversation)

@@ -48,6 +48,7 @@ DixaClient.patch_conversation_message_anonymize = conversations.patch_conversati
 DixaClient.create_conversation_tags_bulk = conversations.create_conversation_tags_bulk
 DixaClient.update_conversation_claim = conversations.update_conversation_claim
 DixaClient.update_conversation_close = conversations.update_conversation_close
+DixaClient.update_conversation_transfer_queue = conversations.update_conversation_transfer_queue
 DixaClient.create_conversation = conversations.create_conversation
 DixaClient.get_conversation = conversations.get_conversation
 DixaClient.get_conversation_flows = conversations.get_conversation_flows
