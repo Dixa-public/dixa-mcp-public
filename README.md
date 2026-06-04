@@ -307,6 +307,7 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 - **`remove_tag_from_conversation`**: Remove a tag from a conversation.
 - **`assign_conversation_to_agent`**: Assign/claim a conversation to an agent.
 - **`close_conversation`**: Close a conversation.
+- **`transfer_conversation_to_queue`**: Transfer a conversation to a target queue.
 - **`reopen_conversation`**: Reopen a closed conversation.
 - **`link_conversation_to_parent`**: Link a conversation to a parent conversation.
 - **`set_conversation_followup_status`**: Set follow-up status for a conversation.
