@@ -5,6 +5,7 @@ Tool for getting metric records data (unaggregated) from the Dixa Analytics API.
 import json
 from typing import Dict, Any, Optional, List, Union
 from tools.base import get_dixa_client
+from tools.analytics.period_filter import normalize_period_filter
 
 
 async def fetch_unaggregated_data(
@@ -62,14 +63,15 @@ async def fetch_unaggregated_data(
     Without calling these prerequisite tools first, you cannot build a valid payload for this tool.
     
     IMPORTANT - Filter Selection (Discriminated Union):
-    The API uses a discriminated union pattern. You can use:
-    - period_filter (RECOMMENDED): For time-based queries. When used, csidFilter is NOT included, but filters IS REQUIRED.
-    - csid_filter: For specific conversation IDs. When used, periodFilter is NOT included, and filters is optional.
+    The API can return misleading validation errors when periodFilter is malformed. For interval
+    filters, this tool normalizes shorthand dates into typed ISO 8601 timestamps. You can use:
+    - period_filter (RECOMMENDED): For time-based queries. When used, csidFilter is NOT included and filters defaults to [] when omitted.
+    - csid_filter: For specific conversation IDs. When used, periodFilter is NOT included and filters defaults to [] when omitted.
     - filters only: Can be used alone without period_filter or csid_filter.
     
     These combinations are mutually exclusive in the request:
-    - period_filter + filters (required) → csidFilter NOT included
-    - csid_filter + filters (optional) → periodFilter NOT included  
+    - period_filter + filters (optional) → csidFilter NOT included
+    - csid_filter + filters (optional) → periodFilter NOT included
     - filters only → periodFilter and csidFilter NOT included
     
     Args:
@@ -89,7 +91,7 @@ async def fetch_unaggregated_data(
             Common preset values: "PreviousWeek", "PreviousMonth", "PreviousQuarter", "PreviousYear", "Today", "Yesterday"
             IMPORTANT: 
             - If provided, csid_filter will be ignored and NOT included in the request (discriminated union).
-            - When using period_filter, the filters parameter is REQUIRED and must contain at least one filter.
+            - When using period_filter, filters may be omitted and will be sent as [].
             - At least one of period_filter, csid_filter, or filters must be provided.
             This is the recommended approach for time-based queries.
             Example (preset): {"_type": "Preset", "value": {"_type": "PreviousWeek"}}
@@ -99,7 +101,7 @@ async def fetch_unaggregated_data(
             Only use when you need to analyze specific conversations and period_filter is not suitable.
             Must contain at least one conversation ID.
             IMPORTANT: Only used if period_filter is not provided. If period_filter is provided, this parameter is ignored.
-            When using csid_filter, periodFilter is NOT included in the request (discriminated union).
+            When using csid_filter, periodFilter is NOT included and filters defaults to [] when omitted.
             Example: [12345, 12346, 12347]
         
         filters: Additional filters to apply. MUST be passed as an array of objects, NOT as a JSON string.
@@ -107,8 +109,8 @@ async def fetch_unaggregated_data(
             Format: [{"attribute": "channel", "values": ["email", "chat"]}, {"attribute": "queue_id", "values": ["queue-123"]}]
             Common attributes: "channel", "queue_id", "agent_id", "tag_id", "initial_direction", "contact_point"
             IMPORTANT: 
-            - When using period_filter: filters is REQUIRED and must contain at least one filter.
-            - When using csid_filter: filters is optional.
+            - When using period_filter: filters is optional; [] is sent when omitted.
+            - When using csid_filter: filters is optional; [] is sent when omitted.
             - Can be used alone (without period_filter or csid_filter) - must contain at least one filter.
             - Each filter's "values" must be a non-empty array. Filters with null or empty values are automatically removed.
             - At least one of period_filter, csid_filter, or filters must be provided.
@@ -167,12 +169,12 @@ async def fetch_unaggregated_data(
         - For large datasets: Consider extracting only fields relevant to the user's query rather than all fields
     
     Example Usage:
-        # Get all closed conversation records for last week (filters required when using period_filter)
+        # Get all closed conversation records for last week
         fetch_unaggregated_data(
             record_id="closed_conversations",
             timezone="Europe/Copenhagen",
             period_filter={"_type": "Preset", "value": {"_type": "PreviousWeek"}},
-            filters=[{"attribute": "channel", "values": ["email", "chat"]}],  # Required when using period_filter
+            filters=[{"attribute": "channel", "values": ["email", "chat"]}],
             page_limit=300
         )
         
@@ -181,7 +183,7 @@ async def fetch_unaggregated_data(
             record_id="ratings",
             timezone="America/New_York",
             period_filter={"_type": "Interval", "start": "2024-01-01T00:00:00Z", "end": "2024-01-31T23:59:59Z"},
-            filters=[{"attribute": "channel", "values": ["email"]}],  # Required when using period_filter
+            filters=[{"attribute": "channel", "values": ["email"]}],
             page_limit=300
         )
         
@@ -310,16 +312,15 @@ async def fetch_unaggregated_data(
         if not has_valid_period and not has_valid_csid and not has_valid_filters:
             raise ValueError("At least one of period_filter, csid_filter, or filters must be provided. period_filter is the preferred option.")
         
-        # Validate that when using periodFilter, at least one filter is required
-        if has_valid_period and not has_valid_filters:
-            raise ValueError("When using period_filter, at least one filter in the filters array is required. Use prepare_analytics_record_query to discover available filter attributes and values.")
+    if has_valid_period:
+        period_filter = normalize_period_filter(period_filter)
     
     # The API uses a discriminated union with three possible structures:
-    # Structure 1: With periodFilter (preferred) - filters REQUIRED
+    # Structure 1: With periodFilter (preferred) - filters optional
     #   {
     #     "id": "closed_conversations",
     #     "periodFilter": {"_type": "Preset", "value": {"_type": "PreviousWeek"}},
-    #     "filters": [{"attribute": "channel", "values": ["email"]}],
+    #     "filters": [],
     #     "timezone": "Europe/Copenhagen"
     #   }
     #   OR for custom intervals:
@@ -350,17 +351,13 @@ async def fetch_unaggregated_data(
     # Build request based on provided parameters (discriminated union)
     if has_valid_period:
         # Use GetMetricRecordsDataInputPeriodFilter - include periodFilter, exclude csidFilter (preferred)
-        # When using periodFilter, at least one filter is REQUIRED
         request["periodFilter"] = period_filter
         # Do NOT include csidFilter when using periodFilter (discriminated union)
-        # Filters are required when using periodFilter (validated above)
-        request["filters"] = filters
+        request["filters"] = filters if has_valid_filters else []
     elif has_valid_csid:
         # Use GetMetricRecordsDataInputCsidFilter - include csidFilter, exclude periodFilter
         request["csidFilter"] = csid_filter
-        # filters can be included with csidFilter approach (optional)
-        if has_valid_filters:
-            request["filters"] = filters
+        request["filters"] = filters if has_valid_filters else []
     elif has_valid_filters:
         # Use filters only (no periodFilter, no csidFilter)
         request["filters"] = filters
@@ -383,4 +380,3 @@ async def fetch_unaggregated_data(
     print(f"[fetch_unaggregated_data] Response:\n{response_json}")
     
     return result
-
