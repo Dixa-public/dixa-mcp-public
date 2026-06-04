@@ -16,10 +16,26 @@ async def search_conversations(
     Search for conversations containing a particular text or by filter or combine them both.
     
     Args:
-        page_key: Base64 encoded form of pagination query parameters. Do not try to construct or change programmatically as the internal structure may change without notice (optional).
+        page_key: Base64 encoded form of pagination query parameters. Do not try to construct or change programmatically as the internal structure may change without notice (optional). May be passed raw or URL-encoded from a next/previous URL.
         page_limit: Maximum number of results per page. Must be less than or equal to 50. May be used in combination with pageKey to change the number of results in between page requests (optional).
         filters: Dictionary containing filter conditions to apply to the search (optional).
-                Example: {
+                Use the Dixa API JSON filter format, not the Dixa UI URL filter syntax.
+                Documented filter field _type values are:
+                AgentId, AssignedDate, Channel, ClosedDate, ContactId, ConversationId,
+                CreationDate, CustomAttribute, Direction, Duration, LastActivity,
+                LastMessage, QueueId, Status, and TagId.
+                
+                Common operators:
+                - TagId: IncludesOne, IncludesAll, ExcludesOne, ExcludesAll, IsEmpty, IsNotEmpty
+                - CustomAttribute: IsOneOf, IsNotOneOf, IsEmpty, IsNotEmpty.
+                  Use _type "CustomAttribute" with attributeId, not "ConversationCustomAttribute".
+                - Status: IsOneOf, IsNotOneOf with values open, closed, pending
+                - AgentId/QueueId: IsOneOf, IsNotOneOf, IsEmpty, IsNotEmpty
+                - ContactId/ConversationId/Channel/Direction: IsOneOf, IsNotOneOf
+                - Timestamp fields (AssignedDate, CreationDate, ClosedDate,
+                  LastActivity, LastMessage): Since, Until, Between
+                
+                Tag example: {
                     "strategy": "All",
                     "conditions": [
                         {
@@ -29,6 +45,37 @@ async def search_conversations(
                                     "_type": "IncludesOne"
                                 },
                                 "_type": "TagId"
+                            }
+                        }
+                    ]
+                }
+                
+                Status example: {
+                    "strategy": "All",
+                    "conditions": [
+                        {
+                            "field": {
+                                "operator": {
+                                    "values": ["open"],
+                                    "_type": "IsOneOf"
+                                },
+                                "_type": "Status"
+                            }
+                        }
+                    ]
+                }
+                
+                Conversation custom attribute example: {
+                    "strategy": "All",
+                    "conditions": [
+                        {
+                            "field": {
+                                "operator": {
+                                    "values": [["Brand X"]],
+                                    "_type": "IsOneOf"
+                                },
+                                "attributeId": "custom-attribute-id",
+                                "_type": "CustomAttribute"
                             }
                         }
                     ]
@@ -60,4 +107,3 @@ async def search_conversations(
         filters=filters,
         query=query
     )
-
