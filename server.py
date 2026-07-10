@@ -1,6 +1,7 @@
 import os
 import sys
 from fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 from typing import Dict, Any
 
 # Import shared variables - these are the same instances used in tools.base
@@ -36,6 +37,7 @@ mcp = FastMCP(
         - Settings: Manage contact endpoints, business hours schedules and status
         - Conversations: Manage conversations (get, create, add notes, tag, claim, close, anonymize, search, etc.)
         - Custom Attributes: Manage custom attributes for conversations and end users
+        - Knowledge: Browse collections and catalogs; manage article translations, publication, placement, and attachments
         - Analytics: Get aggregated analytics data (metrics, filter values) - requires discovering available metrics first
         
         Important Notes:
@@ -70,9 +72,16 @@ mcp = FastMCP(
         5. Queue Operations:
            - Most queue operations require a queue_id. First use `list_queues` to list all queues and find the queue ID, then use it in operations like `fetch_queue_by_id`, `list_queue_agents`, `assign_agents_to_queue`, etc.
         
-        6. Knowledge Base Operations:
-           - To create an article in a category: First use `list_knowledge_categories` to find the category_id (optional), then use `add_knowledge_article`.
-           - To update an article: First use `list_knowledge_articles` to find the article_id, then use `modify_knowledge_article`.
+        6. Knowledge Base Operations (MANDATORY WORKFLOW):
+           - Definitions: A collection is a top-level knowledge base. Its catalog is the nested category/article hierarchy, including root-level articles. Article titles and HTML content are language-specific translations with separate draft and published versions; ownership, tags, pre-release state, parent placement, and publication are managed independently.
+           - Discovery: Start with `list_knowledge_collections` and pass returned `page_key` values through unchanged. Use `fetch_knowledge_collection_catalog` to discover category and article IDs; its optional `language` selects localized catalog titles. Use the collection/category/article fetch tools for details, and the translation fetch tools when every language or version is needed.
+           - Create and edit: `add_knowledge_article` accepts translations shaped as `{"languageId": "en", "title": "Title", "content": "<p>Optional HTML</p>"}`, plus optional `parent_id`, tag IDs, and `pre_release`. Creation does not publish. Use `modify_knowledge_article` only for `owned_by`, tag changes shaped as `{"add": [...], "remove": [...]}`, and `pre_release`; use `modify_knowledge_article_translations` for title/content changes. Omitted fields remain unchanged, while explicit `False` and empty lists are intentional values.
+           - Publishing: Translation edits update drafts and do not make them searchable. Fetch the article metadata and all translations before choosing a publish tool. Dixa rejects single-translation publication when the article has `preRelease=true` and is multilingual; use `publish_knowledge_article` to publish all translations in that state. Never disable `pre_release` merely to bypass this rule without separately explaining and obtaining confirmation for that metadata change. Otherwise, use the translation publish/unpublish tools for one language. `unpublish_knowledge_article` removes all translations from search.
+           - Placement: Set `parent_id` during creation, use `move_knowledge_article` to replace the parent category, or `remove_knowledge_article_parent` to remove the parent association. Obtain destination category IDs from a collection catalog.
+           - Attachments: `upload_knowledge_article_attachments` accepts 1-5 PNG, JPEG, GIF, or WebP images as `filename`, `media_type`, and strict base64 bytes in `content_base64`; server-local paths and data-URL prefixes are not accepted. Limits are 4 MB per file and 10 MB total. Use each returned public URL in a later translation HTML update.
+           - Partial success: `modify_knowledge_article_translations` and `upload_knowledge_article_attachments` may return successful `data` together with `partialErrors`. Always inspect and report both; do not describe the whole request as successful when partial errors exist.
+           - Legacy migration: Dixa v1 has no global article list, global category list, or category-creation endpoint. Do not use the removed `list_knowledge_articles`, `list_knowledge_categories`, or `add_knowledge_category` tools. Use collection catalogs for discovery. Replace legacy `title`/`content` fields with `translations`, `category_id` with `parent_id` or `move_knowledge_article`, and `published` with explicit publish/unpublish tools.
+           - Confirmation: The seven list/fetch tools are read-only. Every create, patch, delete, publish, unpublish, move, parent-removal, and attachment-upload tool modifies Dixa and MUST NOT be called until the user explicitly confirms the target article/category/language/files and intended change.
         
         7. Custom Attributes Operations:
            - To update custom attributes: First use `list_custom_attributes` to get the list of custom attribute definitions and their IDs. The custom_attributes parameter requires a dictionary mapping custom attribute IDs (UUIDs) to values. Then use `update_conversation_custom_attributes` or `update_end_user_custom_attributes`.
@@ -318,7 +327,27 @@ from tools.settings import list_contact_endpoints, fetch_contact_endpoint_by_id,
 from tools.conversations import fetch_conversation_by_id, list_conversation_flows, list_conversation_activity_log, list_conversation_notes, list_linked_conversations, list_conversation_messages, list_organization_activity_log, list_conversation_ratings, search_conversations, start_conversation, import_conversations, add_conversation_note, add_conversation_notes_bulk, anonymize_conversation, anonymize_conversation_message, tag_conversation_bulk, assign_conversation_to_agent, close_conversation, transfer_conversation_to_queue, link_conversation_to_parent, set_conversation_followup_status, reopen_conversation, tag_conversation, remove_tag_from_conversation
 from tools.custom_attributes import fetch_custom_attribute_by_id, list_custom_attributes, update_conversation_custom_attributes, update_end_user_custom_attributes
 from tools.users import list_end_users, fetch_end_user_by_id, add_end_user, add_end_users_bulk, modify_end_user_partial, modify_end_users_bulk, update_end_user_full, update_end_users_bulk, list_end_user_conversations, anonymize_end_user
-from tools.knowledge import list_knowledge_articles, fetch_knowledge_article_by_id, add_knowledge_article, modify_knowledge_article, remove_knowledge_article, list_knowledge_categories, add_knowledge_category
+from tools.knowledge import (
+    list_knowledge_collections,
+    fetch_knowledge_collection_by_id,
+    fetch_knowledge_collection_catalog,
+    fetch_knowledge_category_by_id,
+    fetch_knowledge_category_translations,
+    fetch_knowledge_article_by_id,
+    fetch_knowledge_article_translations,
+    add_knowledge_article,
+    modify_knowledge_article,
+    remove_knowledge_article,
+    modify_knowledge_article_translations,
+    remove_knowledge_article_translation,
+    publish_knowledge_article_translation,
+    unpublish_knowledge_article_translation,
+    publish_knowledge_article,
+    unpublish_knowledge_article,
+    move_knowledge_article,
+    remove_knowledge_article_parent,
+    upload_knowledge_article_attachments,
+)
 from tools.queues import list_queues, fetch_queue_by_id, check_queue_availability, check_conversation_queue_position, list_queue_agents, add_queue, assign_agents_to_queue, remove_agents_from_queue
 from tools.tags import list_tags, fetch_tag_by_id, list_conversation_tags, add_tag, activate_tag, deactivate_tag, remove_tag
 from tools.teams import list_teams, fetch_team_by_id, list_team_agents, list_team_presence, add_team, add_agents_to_team, remove_agents_from_team, remove_team
@@ -378,13 +407,145 @@ mcp.tool(update_end_user_full)
 mcp.tool(update_end_users_bulk)
 mcp.tool(list_end_user_conversations)
 mcp.tool(anonymize_end_user)
-mcp.tool(list_knowledge_articles)
-mcp.tool(fetch_knowledge_article_by_id)
-mcp.tool(add_knowledge_article)
-mcp.tool(modify_knowledge_article)
-mcp.tool(remove_knowledge_article)
-mcp.tool(list_knowledge_categories)
-mcp.tool(add_knowledge_category)
+_KNOWLEDGE_READ_ONLY_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=True,
+    destructiveHint=False,
+    idempotentHint=True,
+    openWorldHint=True,
+)
+_KNOWLEDGE_MUTATION_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=False,
+    destructiveHint=False,
+    idempotentHint=False,
+    openWorldHint=True,
+)
+_KNOWLEDGE_DESTRUCTIVE_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=False,
+    destructiveHint=True,
+    idempotentHint=True,
+    openWorldHint=True,
+)
+_KNOWLEDGE_DESTRUCTIVE_NON_IDEMPOTENT_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=False,
+    destructiveHint=True,
+    idempotentHint=False,
+    openWorldHint=True,
+)
+
+mcp.tool(
+    list_knowledge_collections,
+    title="List Knowledge Collections",
+    tags={"knowledge", "read-only"},
+    annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS,
+)
+mcp.tool(
+    fetch_knowledge_collection_by_id,
+    title="Get Knowledge Collection",
+    tags={"knowledge", "read-only"},
+    annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS,
+)
+mcp.tool(
+    fetch_knowledge_collection_catalog,
+    title="Get Knowledge Collection Catalog",
+    tags={"knowledge", "read-only"},
+    annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS,
+)
+mcp.tool(
+    fetch_knowledge_category_by_id,
+    title="Get Knowledge Category",
+    tags={"knowledge", "read-only"},
+    annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS,
+)
+mcp.tool(
+    fetch_knowledge_category_translations,
+    title="Get Knowledge Category Translations",
+    tags={"knowledge", "read-only"},
+    annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS,
+)
+mcp.tool(
+    fetch_knowledge_article_by_id,
+    title="Get Knowledge Article",
+    tags={"knowledge", "read-only"},
+    annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS,
+)
+mcp.tool(
+    fetch_knowledge_article_translations,
+    title="Get Knowledge Article Translations",
+    tags={"knowledge", "read-only"},
+    annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS,
+)
+mcp.tool(
+    add_knowledge_article,
+    title="Add Knowledge Article",
+    tags={"knowledge", "mutation"},
+    annotations=_KNOWLEDGE_MUTATION_ANNOTATIONS,
+)
+mcp.tool(
+    modify_knowledge_article,
+    title="Update Knowledge Article Metadata",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_ANNOTATIONS,
+)
+mcp.tool(
+    remove_knowledge_article,
+    title="Delete Knowledge Article",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_ANNOTATIONS,
+)
+mcp.tool(
+    modify_knowledge_article_translations,
+    title="Update Knowledge Article Translations",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_ANNOTATIONS,
+)
+mcp.tool(
+    remove_knowledge_article_translation,
+    title="Delete Knowledge Article Translation",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_ANNOTATIONS,
+)
+mcp.tool(
+    publish_knowledge_article_translation,
+    title="Publish Knowledge Article Translation",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_NON_IDEMPOTENT_ANNOTATIONS,
+)
+mcp.tool(
+    unpublish_knowledge_article_translation,
+    title="Unpublish Knowledge Article Translation",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_ANNOTATIONS,
+)
+mcp.tool(
+    publish_knowledge_article,
+    title="Publish Knowledge Article",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_NON_IDEMPOTENT_ANNOTATIONS,
+)
+mcp.tool(
+    unpublish_knowledge_article,
+    title="Unpublish Knowledge Article",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_ANNOTATIONS,
+)
+mcp.tool(
+    move_knowledge_article,
+    title="Move Knowledge Article",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_ANNOTATIONS,
+)
+mcp.tool(
+    remove_knowledge_article_parent,
+    title="Remove Knowledge Article Parent",
+    tags={"knowledge", "mutation", "destructive"},
+    annotations=_KNOWLEDGE_DESTRUCTIVE_ANNOTATIONS,
+)
+mcp.tool(
+    upload_knowledge_article_attachments,
+    title="Upload Knowledge Article Attachments",
+    tags={"knowledge", "mutation"},
+    annotations=_KNOWLEDGE_MUTATION_ANNOTATIONS,
+)
 mcp.tool(list_queues)
 mcp.tool(fetch_queue_by_id)
 mcp.tool(check_queue_availability)

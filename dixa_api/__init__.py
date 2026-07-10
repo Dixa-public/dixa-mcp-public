@@ -85,13 +85,25 @@ DixaClient.get_end_user_conversations = users.get_end_user_conversations
 DixaClient.patch_end_user_anonymize = users.patch_end_user_anonymize
 
 # Knowledge
-DixaClient.get_knowledge_articles = knowledge.get_knowledge_articles
+DixaClient.get_knowledge_collections = knowledge.get_knowledge_collections
+DixaClient.get_knowledge_collection = knowledge.get_knowledge_collection
+DixaClient.get_knowledge_collection_catalog = knowledge.get_knowledge_collection_catalog
+DixaClient.get_knowledge_category = knowledge.get_knowledge_category
+DixaClient.get_knowledge_category_translations = knowledge.get_knowledge_category_translations
 DixaClient.get_knowledge_article = knowledge.get_knowledge_article
+DixaClient.get_knowledge_article_translations = knowledge.get_knowledge_article_translations
 DixaClient.create_knowledge_article = knowledge.create_knowledge_article
 DixaClient.patch_knowledge_article = knowledge.patch_knowledge_article
 DixaClient.delete_knowledge_article = knowledge.delete_knowledge_article
-DixaClient.get_knowledge_categories = knowledge.get_knowledge_categories
-DixaClient.create_knowledge_category = knowledge.create_knowledge_category
+DixaClient.patch_knowledge_article_translations = knowledge.patch_knowledge_article_translations
+DixaClient.delete_knowledge_article_translation = knowledge.delete_knowledge_article_translation
+DixaClient.publish_knowledge_article_translation = knowledge.publish_knowledge_article_translation
+DixaClient.unpublish_knowledge_article_translation = knowledge.unpublish_knowledge_article_translation
+DixaClient.publish_knowledge_article = knowledge.publish_knowledge_article
+DixaClient.unpublish_knowledge_article = knowledge.unpublish_knowledge_article
+DixaClient.move_knowledge_article = knowledge.move_knowledge_article
+DixaClient.delete_knowledge_article_parent = knowledge.delete_knowledge_article_parent
+DixaClient.upload_knowledge_article_attachments = knowledge.upload_knowledge_article_attachments
 
 # Queues
 DixaClient.get_queues = queues.get_queues
@@ -132,4 +144,3 @@ DixaClient.get_analytics_record_description = analytics.get_analytics_record_des
 DixaClient.post_analytics_metric_records_data = analytics.post_analytics_metric_records_data
 
 __all__ = ['DixaClient']
-

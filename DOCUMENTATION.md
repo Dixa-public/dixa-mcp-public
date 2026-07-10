@@ -170,7 +170,7 @@ Authorization: Bearer YOUR_API_KEY_HERE
 
 ## What Can You Do?
 
-The Dixa MCP Server provides access to 79 different tools organized into categories:
+The Dixa MCP Server provides access to 95 different tools organized into categories:
 
 ### 📊 Analytics
 - Get aggregated metrics and statistics
@@ -199,8 +199,11 @@ The Dixa MCP Server provides access to 79 different tools organized into categor
 - View organizational structure
 
 ### 📚 Knowledge Base
-- Access knowledge base articles
-- Manage article categories
+- Browse collections and their category/article catalogs
+- Read translated article and category content
+- Create, edit, publish, unpublish, move, and delete articles and translations
+- Publish multilingual pre-release articles as a complete set; Dixa does not permit publishing only one translation
+- Upload image attachments for article content
 
 ### ⚙️ Settings
 - View contact endpoints (channels)
