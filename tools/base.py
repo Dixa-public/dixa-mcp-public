@@ -32,7 +32,7 @@ def get_api_key() -> str:
     api_key_from_header = None
     try:
         from fastmcp.server.dependencies import get_http_headers
-        headers = get_http_headers()
+        headers = get_http_headers(include={'authorization'})
         if headers:
             # Headers are typically lowercase in HTTP
             auth_header = headers.get("authorization") or headers.get("Authorization", "")
