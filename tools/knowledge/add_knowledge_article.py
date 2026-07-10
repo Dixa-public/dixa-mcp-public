@@ -1,43 +1,60 @@
-"""
-Tool for creating a knowledge article from the Dixa API.
+"""Tool for adding a knowledge article through the Dixa API.
 
 ⚠️ WARNING: This is a MODIFICATION endpoint that modifies data.
 The AI assistant MUST obtain explicit user confirmation before calling this tool.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 from tools.base import get_dixa_client
+from tools.knowledge.schemas import KnowledgeTagIdList, KnowledgeTranslationList
 
 
 async def add_knowledge_article(
-    title: str,
-    content: str,
-    category_id: Optional[str] = None,
-    published: Optional[bool] = None
+    translations: Optional[KnowledgeTranslationList] = None,
+    parent_id: Optional[str] = None,
+    tags: Optional[KnowledgeTagIdList] = None,
+    pre_release: Optional[bool] = None,
 ) -> Dict[str, Any]:
-    """
-    Create a knowledge article.
-    
-    ⚠️ WARNING: This is a MODIFICATION endpoint that will create a knowledge article in your Dixa organization.
-    The AI assistant MUST obtain explicit user confirmation before executing this tool.
-    
-    Prerequisites:
-    - To get category_id (optional): Use `list_knowledge_categories` to list all categories and find the category ID if you want to assign the article to a category.
-    
+    """Add a draft knowledge article with optional placement and metadata.
+
+    Discover a parent category with ``list_knowledge_collections`` followed by
+    ``fetch_knowledge_collection_catalog`` when the article should be nested.
+    Supply titles and HTML bodies inside ``translations``; there are no
+    top-level ``title`` or ``content`` fields. Creation does not publish the
+    draft for search.
+
+    ⚠️ WARNING: This creates data in the Dixa organization.
+    The AI assistant MUST obtain explicit user confirmation for the
+    translations, parent, tags, and pre-release setting before executing it.
+
     Args:
-        title: The title of the article (required).
-        content: The content of the article (required).
-        category_id: The ID of the category to assign the article to (optional).
-        published: Whether the article should be published (optional).
-    
+        translations: Initial draft translations. Each item requires the ISO
+            ``languageId`` and ``title`` and may include HTML ``content``.
+            Omit the argument to send no translations; an explicit empty list
+            is sent unchanged. Attachment content should reference public URLs
+            returned by ``upload_knowledge_article_attachments``.
+        parent_id: Parent category ID discovered in a collection catalog. Omit
+            it to send no parent; use the movement tools to change it later.
+        tags: Tag IDs to assign. Omit to send no tag field; an explicit empty
+            list is preserved.
+        pre_release: ``True`` to make the article pre-release only or ``False``
+            to explicitly disable that setting. Omit it to use Dixa's default.
+
     Returns:
-        Dictionary containing the created knowledge article.
+        The unchanged Dixa response. Its ``data`` contains the created article
+        ID, metadata, placement, and draft/published translation state.
+
+    Notes:
+        Inspect the created article metadata and translations before publishing.
+        When ``pre_release=True`` and the article is multilingual, Dixa requires
+        ``publish_knowledge_article`` to publish all translations together;
+        otherwise a translation publication tool can publish one language.
     """
     client = get_dixa_client()
     return client.create_knowledge_article(
-        title=title,
-        content=content,
-        category_id=category_id,
-        published=published
+        translations=translations,
+        parent_id=parent_id,
+        tags=tags,
+        pre_release=pre_release,
     )
-

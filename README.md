@@ -355,13 +355,29 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 
 ### Knowledge Base Tools
 
-- **`list_knowledge_articles`**: List all knowledge base articles.
-- **`fetch_knowledge_article_by_id`**: Get a specific knowledge base article by ID.
-- **`list_knowledge_categories`**: List all knowledge base categories.
-- **`add_knowledge_article`**: Create a new knowledge base article.
-- **`modify_knowledge_article`**: Update a knowledge base article.
+- **`list_knowledge_collections`**: List knowledge collections with optional pagination.
+- **`fetch_knowledge_collection_by_id`**: Get a knowledge collection by ID.
+- **`fetch_knowledge_collection_catalog`**: Get a collection's category and article catalog, optionally in a selected language.
+- **`fetch_knowledge_category_by_id`**: Get a category by ID, optionally in a selected language.
+- **`fetch_knowledge_category_translations`**: Get every translated title for a category.
+- **`fetch_knowledge_article_by_id`**: Get an article by ID, optionally in a selected language.
+- **`fetch_knowledge_article_translations`**: Get all draft and published translations for an article.
+- **`add_knowledge_article`**: Add an article with translations, parent, tags, and pre-release settings.
+- **`modify_knowledge_article`**: Update article ownership, tags, or pre-release settings.
 - **`remove_knowledge_article`**: Delete a knowledge base article.
-- **`add_knowledge_category`**: Create a new knowledge base category.
+- **`modify_knowledge_article_translations`**: Create or update article translations.
+- **`remove_knowledge_article_translation`**: Delete all versions of one article translation.
+- **`publish_knowledge_article_translation`**: Publish one article translation when the article is not both multilingual and pre-release.
+- **`unpublish_knowledge_article_translation`**: Unpublish one article translation.
+- **`publish_knowledge_article`**: Publish a new version of all article translations.
+- **`unpublish_knowledge_article`**: Remove all article translations from search.
+- **`move_knowledge_article`**: Move an article to a new parent category.
+- **`remove_knowledge_article_parent`**: Remove an article's parent category.
+- **`upload_knowledge_article_attachments`**: Upload base64-encoded image attachments for article content.
+
+The current Dixa v1 Knowledge API has no global article/category list or category-creation endpoints. Use `list_knowledge_collections` followed by `fetch_knowledge_collection_catalog` to discover articles and categories. Article titles and content now belong in translation objects, category placement uses `parent_id` or `move_knowledge_article`, and publication is handled by the explicit publish/unpublish tools.
+
+Dixa requires multilingual pre-release articles to publish all translations together with `publish_knowledge_article`; it rejects publishing only one translation. Do not disable pre-release merely to work around this rule without separately confirming that metadata change.
 
 ### Settings Tools
 
@@ -384,15 +400,15 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 | Organization | 1 | 0 | 1 |
 | Agents | 4 | 4 | 8 |
 | End Users | 3 | 7 | 10 |
-| Conversations | 9 | 11 | 20 |
+| Conversations | 9 | 15 | 24 |
 | Custom Attributes | 2 | 2 | 4 |
 | Tags | 3 | 4 | 7 |
 | Teams | 4 | 4 | 8 |
 | Queues | 5 | 3 | 8 |
-| Knowledge Base | 3 | 4 | 7 |
+| Knowledge Base | 7 | 12 | 19 |
 | Settings | 4 | 0 | 4 |
 | Analytics | 2 | 0 | 2 |
-| **Total** | **40** | **39** | **79** |
+| **Total** | **44** | **51** | **95** |
 
 ### Important Notes
 
