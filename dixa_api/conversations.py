@@ -674,7 +674,7 @@ def get_conversation_activity_log(
         HTTPError: If the API returns an HTTP error status (4xx, 5xx).
         RequestException: If there's an error making the request.
     """
-    url = f"{self.base_url}/conversations/{conversation_id}/activity-log"
+    url = f"{self.base_url}/conversations/{conversation_id}/activitylog"
         
     try:
         response = requests.get(url, headers=self.headers)
@@ -929,7 +929,7 @@ def get_organization_activity_log(
         HTTPError: If the API returns an HTTP error status (4xx, 5xx).
         RequestException: If there's an error making the request.
     """
-    url = f"{self.base_url}/conversations/activity-log"
+    url = f"{self.base_url}/conversations/activitylog"
         
     headers = {
         **self.headers
