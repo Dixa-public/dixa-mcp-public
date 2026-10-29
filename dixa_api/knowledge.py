@@ -148,6 +148,23 @@ def get_knowledge_article_translations(
     )
 
 
+def create_knowledge_category(
+    self,
+    parent_id: str,
+    translations: Optional[List[Dict[str, Any]]] = None,
+) -> Dict[str, Any]:
+    """Create a knowledge category under a collection or another category."""
+    payload: Dict[str, Any] = {"parentId": parent_id}
+    if translations is not None:
+        payload["translations"] = translations
+    return _knowledge_request(
+        self,
+        "POST",
+        "/knowledge/categories",
+        json_payload=payload,
+    )
+
+
 def create_knowledge_article(
     self,
     translations: Optional[List[Dict[str, Any]]] = None,

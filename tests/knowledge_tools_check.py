@@ -1,11 +1,13 @@
 import ast
 import base64
+import json
 import sys
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from fastmcp import Client
+from fastmcp.exceptions import ToolError
 from requests.exceptions import HTTPError, RequestException
 
 from dixa_api import DixaClient
@@ -23,6 +25,7 @@ EXPECTED_TOOL_NAMES = [
     "fetch_knowledge_category_translations",
     "fetch_knowledge_article_by_id",
     "fetch_knowledge_article_translations",
+    "add_knowledge_category",
     "add_knowledge_article",
     "modify_knowledge_article",
     "remove_knowledge_article",
@@ -45,6 +48,7 @@ EXPECTED_CLIENT_METHOD_NAMES = {
     "get_knowledge_category_translations",
     "get_knowledge_article",
     "get_knowledge_article_translations",
+    "create_knowledge_category",
     "create_knowledge_article",
     "patch_knowledge_article",
     "delete_knowledge_article",
@@ -62,7 +66,6 @@ EXPECTED_CLIENT_METHOD_NAMES = {
 LEGACY_TOOL_NAMES = {
     "list_knowledge_articles",
     "list_knowledge_categories",
-    "add_knowledge_category",
 }
 
 _UNSET = object()
@@ -596,7 +599,7 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
             client.calls,
         )
 
-    async def test_all_nineteen_wrappers_delegate_with_api_shaped_arguments(self):
+    async def test_all_twenty_wrappers_delegate_with_api_shaped_arguments(self):
         translations = [
             {
                 "languageId": "en",
@@ -648,6 +651,18 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
                 {"article_id": "article-1"},
                 "get_knowledge_article_translations",
                 {"article_id": "article-1"},
+            ),
+            (
+                "add_knowledge_category",
+                {
+                    "parent_id": "collection-1",
+                    "translations": [{"languageId": "en", "title": "Getting started"}],
+                },
+                "create_knowledge_category",
+                {
+                    "parent_id": "collection-1",
+                    "translations": [{"languageId": "en", "title": "Getting started"}],
+                },
             ),
             (
                 "add_knowledge_article",
@@ -759,7 +774,7 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
             ),
         ]
 
-        self.assertEqual(19, len(cases))
+        self.assertEqual(20, len(cases))
         for case in cases:
             with self.subTest(tool=case[0]):
                 await self._assert_delegates(*case)
@@ -803,14 +818,14 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
 
 
 class KnowledgeSurfaceTests(unittest.TestCase):
-    def test_package_exports_exactly_the_nineteen_official_tools(self):
+    def test_package_exports_exactly_the_twenty_official_tools(self):
         self.assertEqual(EXPECTED_TOOL_NAMES, knowledge_tools.__all__)
-        self.assertEqual(19, len(set(knowledge_tools.__all__)))
+        self.assertEqual(20, len(set(knowledge_tools.__all__)))
         for name in EXPECTED_TOOL_NAMES:
             self.assertTrue(callable(getattr(knowledge_tools, name)))
         self.assertTrue(LEGACY_TOOL_NAMES.isdisjoint(knowledge_tools.__all__))
 
-    def test_dixa_client_has_exactly_the_nineteen_knowledge_bindings(self):
+    def test_dixa_client_has_exactly_the_twenty_knowledge_bindings(self):
         actual = {
             name
             for name in vars(DixaClient)
@@ -845,6 +860,97 @@ class KnowledgeSurfaceTests(unittest.TestCase):
             self.assertEqual(1, registered.count(name), name)
         for name in LEGACY_TOOL_NAMES:
             self.assertNotIn(name, registered)
+
+
+class KnowledgeCategoryProtocolTests(unittest.IsolatedAsyncioTestCase):
+    async def test_category_creation_from_mcp_to_http_preserves_payload_and_response(self):
+        import server
+
+        module = sys.modules[knowledge_tools.add_knowledge_category.__module__]
+        dixa_client = DixaClient(api_key="test-api-key")
+        translations = [
+            {"languageId": "en", "title": "Getting Started"},
+            {"languageId": "da", "title": "Kom godt i gang"},
+        ]
+        cases = [
+            ("collection-1", {}, {}),
+            ("category-1", {"translations": None}, {}),
+            ("collection-1", {"translations": []}, {"translations": []}),
+            ("collection-1", {"translations": translations}, {"translations": translations}),
+            ("category-1", {"translations": json.dumps(translations)}, {"translations": translations}),
+        ]
+
+        async with Client(server.mcp) as client:
+            for parent_id, arguments, payload in cases:
+                with self.subTest(parent_id=parent_id, arguments=arguments):
+                    api_result = {
+                        "data": {
+                            "id": "created-category",
+                            "isLocked": False,
+                            "restrictions": {"isRestricted": False},
+                            "parentCollections": ["collection-1"],
+                        }
+                    }
+                    with patch.object(module, "get_dixa_client", return_value=dixa_client), patch.object(
+                        knowledge.requests, "request", return_value=FakeResponse(json_data=api_result)
+                    ) as request:
+                        result = await client.call_tool(
+                            "add_knowledge_category",
+                            {"parent_id": parent_id, **arguments},
+                        )
+
+                    self.assertEqual(api_result, result.data)
+                    request.assert_called_once_with(
+                        "POST",
+                        "https://dev.dixa.io/v1/knowledge/categories",
+                        headers={
+                            "Authorization": "test-api-key",
+                            "Content-Type": "application/json",
+                        },
+                        json={"parentId": parent_id, **payload},
+                    )
+
+    async def test_invalid_category_arguments_fail_before_creating_a_client(self):
+        import server
+
+        module = sys.modules[knowledge_tools.add_knowledge_category.__module__]
+        invalid_arguments = [
+            {},
+            {"parent_id": None},
+            {"parent_id": "collection-1", "translations": [{"title": "Getting Started"}]},
+            {"parent_id": "collection-1", "translations": [{"languageId": "en"}]},
+            {"parent_id": "collection-1", "translations": "not-json"},
+            {"parent_id": "collection-1", "translations": "{}"},
+        ]
+
+        async with Client(server.mcp) as client:
+            for arguments in invalid_arguments:
+                with self.subTest(arguments=arguments), patch.object(module, "get_dixa_client") as get_client:
+                    with self.assertRaises(ToolError):
+                        await client.call_tool("add_knowledge_category", arguments)
+                    get_client.assert_not_called()
+
+    async def test_category_http_errors_are_reported_without_retrying_creation(self):
+        import server
+
+        module = sys.modules[knowledge_tools.add_knowledge_category.__module__]
+        dixa_client = DixaClient(api_key="test-api-key")
+
+        async with Client(server.mcp) as client:
+            for status_code in (400, 404, 500):
+                with self.subTest(status_code=status_code), patch.object(
+                    module, "get_dixa_client", return_value=dixa_client
+                ), patch.object(
+                    knowledge.requests,
+                    "request",
+                    return_value=FakeResponse(
+                        status_code=status_code,
+                        json_data={"message": "Category creation failed"},
+                    ),
+                ) as request:
+                    with self.assertRaisesRegex(ToolError, "HTTP {} error".format(status_code)):
+                        await client.call_tool("add_knowledge_category", {"parent_id": "collection-1"})
+                    request.assert_called_once()
 
 
 class KnowledgeProtocolMetadataTests(unittest.IsolatedAsyncioTestCase):
@@ -982,6 +1088,7 @@ class KnowledgeProtocolMetadataTests(unittest.IsolatedAsyncioTestCase):
 
         read_only_names = set(EXPECTED_TOOL_NAMES[:7])
         additive_names = {
+            "add_knowledge_category",
             "add_knowledge_article",
             "upload_knowledge_article_attachments",
         }
@@ -1018,6 +1125,23 @@ class KnowledgeProtocolMetadataTests(unittest.IsolatedAsyncioTestCase):
                         " ".join(tool.description.split()),
                         r"MUST obtain explicit (?:user )?confirmation",
                     )
+
+        category_tool = protocol_tools["add_knowledge_category"]
+        self.assertEqual("Add Knowledge Category", category_tool.title)
+        category_schema = category_tool.inputSchema
+        self.assertEqual(["parent_id"], category_schema["required"])
+        self.assertEqual({"parent_id", "translations"}, set(category_schema["properties"]))
+        category_translations = _schema_option(
+            category_schema, category_schema["properties"]["translations"], "array"
+        )
+        category_translation = _resolve_schema_ref(category_schema, category_translations["items"])
+        self.assertEqual(["languageId", "title"], category_translation["required"])
+        self.assertEqual({"languageId", "title"}, set(category_translation["properties"]))
+        self.assertIn("collection ID", category_tool.description)
+        self.assertIn("subcategory", category_tool.description)
+        self.assertIn("knowledge.content:w", category_tool.description)
+        self.assertIn("Create categories: `add_knowledge_category`", instructions)
+        self.assertNotIn("category-creation endpoint", instructions)
 
         create_schema = protocol_tools["add_knowledge_article"].inputSchema
         translation_argument_schema = create_schema["properties"]["translations"]

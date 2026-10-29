@@ -1,6 +1,7 @@
 """Knowledge tools for the Dixa MCP server."""
 
 from tools.knowledge.add_knowledge_article import add_knowledge_article
+from tools.knowledge.add_knowledge_category import add_knowledge_category
 from tools.knowledge.fetch_knowledge_article_by_id import fetch_knowledge_article_by_id
 from tools.knowledge.fetch_knowledge_article_translations import (
     fetch_knowledge_article_translations,
@@ -48,6 +49,7 @@ __all__ = [
     "fetch_knowledge_category_translations",
     "fetch_knowledge_article_by_id",
     "fetch_knowledge_article_translations",
+    "add_knowledge_category",
     "add_knowledge_article",
     "modify_knowledge_article",
     "remove_knowledge_article",

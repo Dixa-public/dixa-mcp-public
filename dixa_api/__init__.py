@@ -92,6 +92,7 @@ DixaClient.get_knowledge_category = knowledge.get_knowledge_category
 DixaClient.get_knowledge_category_translations = knowledge.get_knowledge_category_translations
 DixaClient.get_knowledge_article = knowledge.get_knowledge_article
 DixaClient.get_knowledge_article_translations = knowledge.get_knowledge_article_translations
+DixaClient.create_knowledge_category = knowledge.create_knowledge_category
 DixaClient.create_knowledge_article = knowledge.create_knowledge_article
 DixaClient.patch_knowledge_article = knowledge.patch_knowledge_article
 DixaClient.delete_knowledge_article = knowledge.delete_knowledge_article

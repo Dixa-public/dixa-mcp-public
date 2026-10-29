@@ -37,7 +37,7 @@ mcp = FastMCP(
         - Settings: Manage contact endpoints, business hours schedules and status
         - Conversations: Manage conversations (get, create, add notes, tag, claim, close, anonymize, search, etc.)
         - Custom Attributes: Manage custom attributes for conversations and end users
-        - Knowledge: Browse collections and catalogs; manage article translations, publication, placement, and attachments
+        - Knowledge: Browse collections and catalogs; create categories; manage article translations, publication, placement, and attachments
         - Analytics: Get aggregated analytics data (metrics, filter values) - requires discovering available metrics first
         
         Important Notes:
@@ -80,7 +80,8 @@ mcp = FastMCP(
            - Placement: Set `parent_id` during creation, use `move_knowledge_article` to replace the parent category, or `remove_knowledge_article_parent` to remove the parent association. Obtain destination category IDs from a collection catalog.
            - Attachments: `upload_knowledge_article_attachments` accepts 1-5 PNG, JPEG, GIF, or WebP images as `filename`, `media_type`, and strict base64 bytes in `content_base64`; server-local paths and data-URL prefixes are not accepted. Limits are 4 MB per file and 10 MB total. Use each returned public URL in a later translation HTML update.
            - Partial success: `modify_knowledge_article_translations` and `upload_knowledge_article_attachments` may return successful `data` together with `partialErrors`. Always inspect and report both; do not describe the whole request as successful when partial errors exist.
-           - Legacy migration: Dixa v1 has no global article list, global category list, or category-creation endpoint. Do not use the removed `list_knowledge_articles`, `list_knowledge_categories`, or `add_knowledge_category` tools. Use collection catalogs for discovery. Replace legacy `title`/`content` fields with `translations`, `category_id` with `parent_id` or `move_knowledge_article`, and `published` with explicit publish/unpublish tools.
+           - Create categories: `add_knowledge_category` requires `parent_id`: use a collection ID for a top-level category or a category ID for a subcategory. Optional `translations` contain `{"languageId": "en", "title": "Getting Started"}` without article content. Every category belongs to a collection. Requires `knowledge.content:w`.
+           - Legacy migration: Dixa v1 has no global article list or global category list. Do not use the removed `list_knowledge_articles` or `list_knowledge_categories` tools. Use collection catalogs for discovery. Replace legacy `title`/`content` fields with `translations`, `category_id` with `parent_id` or `move_knowledge_article`, and `published` with explicit publish/unpublish tools.
            - Confirmation: The seven list/fetch tools are read-only. Every create, patch, delete, publish, unpublish, move, parent-removal, and attachment-upload tool modifies Dixa and MUST NOT be called until the user explicitly confirms the target article/category/language/files and intended change.
         
         7. Custom Attributes Operations:
@@ -335,6 +336,7 @@ from tools.knowledge import (
     fetch_knowledge_category_translations,
     fetch_knowledge_article_by_id,
     fetch_knowledge_article_translations,
+    add_knowledge_category,
     add_knowledge_article,
     modify_knowledge_article,
     remove_knowledge_article,
@@ -473,6 +475,12 @@ mcp.tool(
     title="Get Knowledge Article Translations",
     tags={"knowledge", "read-only"},
     annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS,
+)
+mcp.tool(
+    add_knowledge_category,
+    title="Add Knowledge Category",
+    tags={"knowledge", "mutation"},
+    annotations=_KNOWLEDGE_MUTATION_ANNOTATIONS,
 )
 mcp.tool(
     add_knowledge_article,

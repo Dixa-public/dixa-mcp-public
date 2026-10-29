@@ -362,6 +362,7 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 - **`fetch_knowledge_category_translations`**: Get every translated title for a category.
 - **`fetch_knowledge_article_by_id`**: Get an article by ID, optionally in a selected language.
 - **`fetch_knowledge_article_translations`**: Get all draft and published translations for an article.
+- **`add_knowledge_category`**: Create a category under a required parent collection or category, with optional translated titles.
 - **`add_knowledge_article`**: Add an article with translations, parent, tags, and pre-release settings.
 - **`modify_knowledge_article`**: Update article ownership, tags, or pre-release settings.
 - **`remove_knowledge_article`**: Delete a knowledge base article.
@@ -375,7 +376,9 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 - **`remove_knowledge_article_parent`**: Remove an article's parent category.
 - **`upload_knowledge_article_attachments`**: Upload base64-encoded image attachments for article content.
 
-The current Dixa v1 Knowledge API has no global article/category list or category-creation endpoints. Use `list_knowledge_collections` followed by `fetch_knowledge_collection_catalog` to discover articles and categories. Article titles and content now belong in translation objects, category placement uses `parent_id` or `move_knowledge_article`, and publication is handled by the explicit publish/unpublish tools.
+The current Dixa v1 Knowledge API has no global article/category list endpoints. Use `list_knowledge_collections` followed by `fetch_knowledge_collection_catalog` to discover articles and categories. Article titles and content now belong in translation objects, article placement uses `parent_id` or `move_knowledge_article`, and publication is handled by the explicit publish/unpublish tools.
+
+[`add_knowledge_category`](https://docs.dixa.io/openapi/dixa-api/v1/knowledge/postknowledgecategories) calls `POST /v1/knowledge/categories` and requires `knowledge.content:w`. Pass a collection ID as `parent_id` for a top-level category, or a category ID for a subcategory. Optional `translations` contain `languageId` and `title` only, for example `[{"languageId": "en", "title": "Getting Started"}]`. Omitted translations are left out of the request; an explicit empty list is preserved. Confirm the parent and titles with the user before creating the category.
 
 Dixa requires multilingual pre-release articles to publish all translations together with `publish_knowledge_article`; it rejects publishing only one translation. Do not disable pre-release merely to work around this rule without separately confirming that metadata change.
 
