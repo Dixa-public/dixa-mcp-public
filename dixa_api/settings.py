@@ -5,6 +5,7 @@ Settings-related API methods for DixaClient.
 import requests
 from typing import Dict, Any, Optional, List, Literal
 from requests.exceptions import RequestException, HTTPError
+from dixa_api.http import api_request
 
 def get_business_hours_status(
     self,
@@ -52,7 +53,6 @@ def get_business_hours_status(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_business_hours_schedules(self) -> Dict[str, Any]:
@@ -93,7 +93,6 @@ def get_business_hours_schedules(self) -> Dict[str, Any]:
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_contact_endpoints(
@@ -150,7 +149,6 @@ def get_contact_endpoints(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_contact_endpoint(
@@ -203,4 +201,29 @@ def get_contact_endpoint(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
+
+
+def get_business_hours_definition(
+    self,
+    schedule_id: str,
+) -> Dict[str, Any]:
+    """Call GET /business-hours/schedules/{schedule_id}/definition."""
+    return api_request(
+        self,
+        'GET',
+        f'/business-hours/schedules/{schedule_id}/definition',
+    )
+
+
+def get_business_hours_upcoming(
+    self,
+    schedule_id: str,
+    days: int = 7,
+) -> Dict[str, Any]:
+    """Call GET /business-hours/schedules/{schedule_id}/upcoming."""
+    return api_request(
+        self,
+        'GET',
+        f'/business-hours/schedules/{schedule_id}/upcoming',
+        params={'days': days},
+    )

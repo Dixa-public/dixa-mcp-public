@@ -12,7 +12,7 @@ def load_tool_module(filename, module_name):
     original_tools_base = sys.modules.get("tools.base")
 
     tools_package = types.ModuleType("tools")
-    tools_package.__path__ = []
+    tools_package.__path__ = [str(Path(__file__).resolve().parents[1] / "tools")]
     analytics_package = types.ModuleType("tools.analytics")
     analytics_package.__path__ = []
     tools_base = types.ModuleType("tools.base")

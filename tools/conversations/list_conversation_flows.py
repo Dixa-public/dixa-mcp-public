@@ -1,23 +1,12 @@
-"""
-Tool for getting (listing) flows for a conversation from the Dixa API.
-"""
-
-from typing import Dict, Any
+"""Discover organization-wide conversation flows."""
+from typing import Any, Dict, Optional
 from tools.base import get_dixa_client
 
+async def list_conversation_flows(channel: Optional[str] = None) -> Dict[str, Any]:
+    """List organization flows; no prerequisite or conversation ID is needed.
 
-async def list_conversation_flows(
-    conversation_id: str
-) -> Dict[str, Any]:
+    channel optionally filters by WhatsApp, Voicemail, WidgetChat,
+    FacebookMessenger, Email, ContactForm, Callback, PstnPhone, or Messenger.
+    Dixa defaults to PstnPhone when omitted. Returned flow IDs identify the organization's configured flows.
     """
-    Get (list) flows for a conversation.
-    
-    Args:
-        conversation_id: The ID of the conversation to get flows for (required).
-    
-    Returns:
-        Dictionary containing the list of flows for the conversation.
-    """
-    client = get_dixa_client()
-    return client.get_conversation_flows(conversation_id=conversation_id)
-
+    return get_dixa_client().get_conversation_flows(channel=channel)

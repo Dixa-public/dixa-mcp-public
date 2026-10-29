@@ -5,6 +5,7 @@ Agents-related API methods for DixaClient.
 import requests
 from typing import Dict, Any, Optional, List, Literal
 from requests.exceptions import RequestException, HTTPError
+from dixa_api.http import api_request
 
 def get_agent(self, agent_id: str) -> Dict[str, Any]:
     """
@@ -52,7 +53,6 @@ def get_agent(self, agent_id: str) -> Dict[str, Any]:
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_agents(
@@ -128,7 +128,6 @@ def get_agents(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_agents_presence(self) -> list:
@@ -169,7 +168,6 @@ def get_agents_presence(self) -> list:
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_agent_teams(self, agent_id: str) -> Dict[str, Any]:
@@ -210,7 +208,6 @@ def get_agent_teams(self, agent_id: str) -> Dict[str, Any]:
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def create_agent(
@@ -303,7 +300,6 @@ def create_agent(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def patch_agent(
@@ -391,7 +387,6 @@ def patch_agent(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def update_agent(
@@ -483,7 +478,6 @@ def update_agent(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def update_agent_working_channel(
@@ -551,4 +545,66 @@ def update_agent_working_channel(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
+
+
+def create_agents_bulk(
+    self,
+    agents: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Call POST /agents/bulk."""
+    return api_request(
+        self,
+        'POST',
+        '/agents/bulk',
+        payload={'data': agents},
+    )
+
+
+def update_agents_bulk(
+    self,
+    agents: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Call PUT /agents."""
+    return api_request(
+        self,
+        'PUT',
+        '/agents',
+        payload=agents,
+    )
+
+
+def patch_agents_bulk(
+    self,
+    agents: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Call PATCH /agents."""
+    return api_request(
+        self,
+        'PATCH',
+        '/agents',
+        payload=agents,
+    )
+
+
+def get_agent_presence(
+    self,
+    agent_id: str,
+) -> Dict[str, Any]:
+    """Call GET /agents/{agent_id}/presence."""
+    return api_request(
+        self,
+        'GET',
+        f'/agents/{agent_id}/presence',
+    )
+
+
+def delete_agent(
+    self,
+    agent_id: str,
+) -> Dict[str, Any]:
+    """Call DELETE /agents/{agent_id}."""
+    return api_request(
+        self,
+        'DELETE',
+        f'/agents/{agent_id}',
+    )

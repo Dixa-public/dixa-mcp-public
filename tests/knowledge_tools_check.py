@@ -38,6 +38,7 @@ EXPECTED_TOOL_NAMES = [
     "move_knowledge_article",
     "remove_knowledge_article_parent",
     "upload_knowledge_article_attachments",
+    "add_knowledge_collection",
 ]
 
 EXPECTED_CLIENT_METHOD_NAMES = {
@@ -48,6 +49,7 @@ EXPECTED_CLIENT_METHOD_NAMES = {
     "get_knowledge_category_translations",
     "get_knowledge_article",
     "get_knowledge_article_translations",
+    "create_knowledge_collection",
     "create_knowledge_category",
     "create_knowledge_article",
     "patch_knowledge_article",
@@ -260,7 +262,7 @@ class KnowledgeClientTests(unittest.TestCase):
         self.client.create_knowledge_article(
             translations=translations,
             parent_id="category-1",
-            tags=[],
+            tags=["tag-1"],
             pre_release=False,
         )
 
@@ -274,10 +276,19 @@ class KnowledgeClientTests(unittest.TestCase):
             json={
                 "translations": translations,
                 "parentId": "category-1",
-                "tags": [],
+                "tags": ["tag-1"],
                 "preRelease": False,
             },
         )
+
+    def test_pre_release_creation_requires_parent_before_http_request(self):
+        for parent_id in (None, "", "   "):
+            with self.subTest(parent_id=parent_id):
+                with self.assertRaisesRegex(ValueError, "parent_id is required"):
+                    self.client.create_knowledge_article(
+                        parent_id=parent_id, pre_release=True
+                    )
+        self.request_mock.assert_not_called()
 
     def test_patch_article_mapping_and_empty_tag_operations(self):
         tags = {"add": [], "remove": []}
@@ -599,7 +610,7 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
             client.calls,
         )
 
-    async def test_all_twenty_wrappers_delegate_with_api_shaped_arguments(self):
+    async def test_all_twenty_one_wrappers_delegate_with_api_shaped_arguments(self):
         translations = [
             {
                 "languageId": "en",
@@ -610,6 +621,12 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
         tag_updates = {"add": ["tag-1"], "remove": []}
         encoded_content = base64.b64encode(b"image bytes").decode("ascii")
         cases = [
+            (
+                "add_knowledge_collection",
+                {"title": "Support", "description": "", "internal_kb_enabled": False},
+                "create_knowledge_collection",
+                {"title": "Support", "description": "", "internal_kb_enabled": False},
+            ),
             (
                 "list_knowledge_collections",
                 {"page_key": "opaque==", "page_limit": 50},
@@ -774,7 +791,7 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
             ),
         ]
 
-        self.assertEqual(20, len(cases))
+        self.assertEqual(21, len(cases))
         for case in cases:
             with self.subTest(tool=case[0]):
                 await self._assert_delegates(*case)
@@ -818,14 +835,14 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
 
 
 class KnowledgeSurfaceTests(unittest.TestCase):
-    def test_package_exports_exactly_the_twenty_official_tools(self):
+    def test_package_exports_exactly_the_twenty_one_official_tools(self):
         self.assertEqual(EXPECTED_TOOL_NAMES, knowledge_tools.__all__)
-        self.assertEqual(20, len(set(knowledge_tools.__all__)))
+        self.assertEqual(21, len(set(knowledge_tools.__all__)))
         for name in EXPECTED_TOOL_NAMES:
             self.assertTrue(callable(getattr(knowledge_tools, name)))
         self.assertTrue(LEGACY_TOOL_NAMES.isdisjoint(knowledge_tools.__all__))
 
-    def test_dixa_client_has_exactly_the_twenty_knowledge_bindings(self):
+    def test_dixa_client_has_exactly_the_twenty_one_knowledge_bindings(self):
         actual = {
             name
             for name in vars(DixaClient)
@@ -954,6 +971,38 @@ class KnowledgeCategoryProtocolTests(unittest.IsolatedAsyncioTestCase):
 
 
 class KnowledgeProtocolMetadataTests(unittest.IsolatedAsyncioTestCase):
+    async def test_article_creation_handles_empty_tags_through_mcp(self):
+        import server
+
+        real_client = DixaClient(api_key="test-api-key")
+        add_module = sys.modules[knowledge_tools.add_knowledge_article.__module__]
+        translation = {"languageId": "en", "title": "Disposable regression test"}
+        with patch.object(add_module, "get_dixa_client", return_value=real_client):
+            with patch.object(knowledge.requests, "request") as request:
+                request.return_value.status_code = 200
+                request.return_value.json.return_value = {"data": {"id": "article-1"}}
+                async with Client(server.mcp) as client:
+                    for tags in ([], "[]", ["tag-1"]):
+                        await client.call_tool("add_knowledge_article", {
+                            "translations": [translation], "parent_id": "category-1",
+                            "pre_release": True, "tags": tags,
+                        })
+                        payload = request.call_args.kwargs["json"]
+                        self.assertEqual("category-1", payload["parentId"])
+                        self.assertIs(True, payload["preRelease"])
+                        self.assertEqual([translation], payload["translations"])
+                        if tags == ["tag-1"]:
+                            self.assertEqual(["tag-1"], payload["tags"])
+                        else:
+                            self.assertNotIn("tags", payload)
+
+                    request.reset_mock()
+                    with self.assertRaisesRegex(ToolError, "fetch_knowledge_collection_catalog"):
+                        await client.call_tool("add_knowledge_article", {
+                            "translations": [translation], "pre_release": True,
+                        })
+                    request.assert_not_called()
+
     async def test_protocol_coerces_claude_json_encoded_structured_arguments(self):
         import server
 
@@ -1088,6 +1137,7 @@ class KnowledgeProtocolMetadataTests(unittest.IsolatedAsyncioTestCase):
 
         read_only_names = set(EXPECTED_TOOL_NAMES[:7])
         additive_names = {
+            "add_knowledge_collection",
             "add_knowledge_category",
             "add_knowledge_article",
             "upload_knowledge_article_attachments",

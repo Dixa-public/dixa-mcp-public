@@ -1,0 +1,762 @@
+{
+  "source": "https://docs.dixa.io/openapi-specs/dixa-v1.json",
+  "retrieved": "2026-10-29",
+  "operations": [
+    {
+      "method": "GET",
+      "path": "/v1/analytics/metrics",
+      "operationId": "getAnalyticsMetrics",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/analytics/metrics",
+      "operationId": "postAnalyticsMetrics",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/analytics/metrics/{metricId}",
+      "operationId": "getAnalyticsMetricsMetricid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/analytics/filter/{filterAttribute}",
+      "operationId": "getAnalyticsFilterFilterattribute",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/analytics/records",
+      "operationId": "getAnalyticsRecords",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/analytics/records",
+      "operationId": "postAnalyticsRecords",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/analytics/records/{recordId}",
+      "operationId": "getAnalyticsRecordsRecordid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/agents/presence",
+      "operationId": "getAgentsPresence",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/agents",
+      "operationId": "getAgents",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/agents",
+      "operationId": "putAgents",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/agents",
+      "operationId": "postAgents",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/agents",
+      "operationId": "patchAgents",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/agents/{agentId}/teams",
+      "operationId": "getAgentsAgentidTeams",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/agents/{agentId}/presence",
+      "operationId": "getAgentsAgentidPresence",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/agents/bulk",
+      "operationId": "postAgentsBulk",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/agents/{agentId}",
+      "operationId": "getAgentsAgentid",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/agents/{agentId}",
+      "operationId": "putAgentsAgentid",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/agents/{agentId}",
+      "operationId": "deleteAgentsAgentid",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/agents/{agentId}",
+      "operationId": "patchAgentsAgentid",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/agents/{agentId}/presence/working-channel",
+      "operationId": "putAgentsAgentidPresenceWorking-channel",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/ai-agents",
+      "operationId": "getAi-agents",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/endusers",
+      "operationId": "getEndusers",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/endusers",
+      "operationId": "putEndusers",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/endusers",
+      "operationId": "postEndusers",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/endusers",
+      "operationId": "patchEndusers",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/endusers/bulk",
+      "operationId": "postEndusersBulk",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/endusers/{userId}",
+      "operationId": "getEndusersUserid",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/endusers/{userId}",
+      "operationId": "putEndusersUserid",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/endusers/{userId}",
+      "operationId": "patchEndusersUserid",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/endusers/{userId}/anonymize",
+      "operationId": "patchEndusersUseridAnonymize",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/endusers/{userId}/custom-attributes",
+      "operationId": "patchEndusersUseridCustom-attributes",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/endusers/{userId}/conversations",
+      "operationId": "getEndusersUseridConversations",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/teams",
+      "operationId": "getTeams",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/teams",
+      "operationId": "postTeams",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/teams/{teamId}/agents",
+      "operationId": "getTeamsTeamidAgents",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/teams/{teamId}/agents",
+      "operationId": "deleteTeamsTeamidAgents",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/teams/{teamId}/agents",
+      "operationId": "patchTeamsTeamidAgents",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/teams/{teamId}/presence",
+      "operationId": "getTeamsTeamidPresence",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/teams/{teamId}",
+      "operationId": "getTeamsTeamid",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/teams/{teamId}",
+      "operationId": "deleteTeamsTeamid",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/conversations/{conversationId}/anonymize",
+      "operationId": "patchConversationsConversationidAnonymize",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/conversations/{conversationId}/messages/{messageId}/anonymize",
+      "operationId": "patchConversationsConversationidMessagesMessageidAnonymize",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/conversations/{conversationId}/close",
+      "operationId": "putConversationsConversationidClose",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/conversations/{conversationId}/followup",
+      "operationId": "putConversationsConversationidFollowup",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/conversations/{conversationId}/reopen",
+      "operationId": "putConversationsConversationidReopen",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/conversations/{conversationId}/transfer/queue",
+      "operationId": "putConversationsConversationidTransferQueue",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/conversations/{conversationId}/notes/bulk",
+      "operationId": "postConversationsConversationidNotesBulk",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/{conversationId}/notes",
+      "operationId": "getConversationsConversationidNotes",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/conversations/{conversationId}/notes",
+      "operationId": "postConversationsConversationidNotes",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/conversations/{conversationId}/ratings/{ratingId}/submit",
+      "operationId": "postConversationsConversationidRatingsRatingidSubmit",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/conversations/{conversationId}/ratings/offer",
+      "operationId": "postConversationsConversationidRatingsOffer",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/{conversationId}/rating",
+      "operationId": "getConversationsConversationidRating",
+      "deprecated": true
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/{conversationId}/ratings",
+      "operationId": "getConversationsConversationidRatings",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/activitylog",
+      "operationId": "getConversationsActivitylog",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/flows",
+      "operationId": "getConversationsFlows",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/conversations/{conversationId}/tags/{tagId}",
+      "operationId": "putConversationsConversationidTagsTagid",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/conversations/{conversationId}/tags/{tagId}",
+      "operationId": "deleteConversationsConversationidTagsTagid",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/conversations/{conversationId}/tags/bulk",
+      "operationId": "postConversationsConversationidTagsBulk",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/{conversationId}/tags",
+      "operationId": "getConversationsConversationidTags",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/{conversationId}/messages",
+      "operationId": "getConversationsConversationidMessages",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/conversations/{conversationId}/messages",
+      "operationId": "postConversationsConversationidMessages",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/conversations",
+      "operationId": "postConversations",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/conversations/import",
+      "operationId": "postConversationsImport",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/conversations/{conversationId}/custom-attributes",
+      "operationId": "patchConversationsConversationidCustom-attributes",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/conversations/{conversationId}/claim",
+      "operationId": "putConversationsConversationidClaim",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/{conversationId}/activitylog",
+      "operationId": "getConversationsConversationidActivitylog",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/{conversationId}",
+      "operationId": "getConversationsConversationid",
+      "deprecated": false
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/conversations/{conversationId}/link",
+      "operationId": "putConversationsConversationidLink",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/conversations/{conversationId}/linked",
+      "operationId": "getConversationsConversationidLinked",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/queues",
+      "operationId": "getQueues",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/queues",
+      "operationId": "postQueues",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/queues/{queueId}/members",
+      "operationId": "getQueuesQueueidMembers",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/queues/{queueId}/members",
+      "operationId": "deleteQueuesQueueidMembers",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/queues/{queueId}/members",
+      "operationId": "patchQueuesQueueidMembers",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/queues/{queueId}/availability",
+      "operationId": "getQueuesQueueidAvailability",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/queues/{queueId}",
+      "operationId": "getQueuesQueueid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/queues/conversation-position/{csid}",
+      "operationId": "getQueuesConversation-positionCsid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/tags",
+      "operationId": "getTags",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/tags",
+      "operationId": "postTags",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/tags/{tagId}",
+      "operationId": "getTagsTagid",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/tags/{tagId}",
+      "operationId": "deleteTagsTagid",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/tags/{tagId}/deactivate",
+      "operationId": "patchTagsTagidDeactivate",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/tags/{tagId}/activate",
+      "operationId": "patchTagsTagidActivate",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/anonymization/request/{requestId}",
+      "operationId": "getAnonymizationRequestRequestid",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/anonymization",
+      "operationId": "postAnonymization",
+      "deprecated": true
+    },
+    {
+      "method": "GET",
+      "path": "/v1/contact-endpoints/{contactEndpointId}",
+      "operationId": "getContact-endpointsContactendpointid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/contact-endpoints",
+      "operationId": "getContact-endpoints",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-attributes/{customAttributeId}",
+      "operationId": "getCustom-attributesCustomattributeid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/custom-attributes",
+      "operationId": "getCustom-attributes",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/search/conversations",
+      "operationId": "getSearchConversations",
+      "deprecated": true
+    },
+    {
+      "method": "POST",
+      "path": "/v1/search/conversations",
+      "operationId": "postSearchConversations",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/webhooks/{webhookSubscriptionId}",
+      "operationId": "getWebhooksWebhooksubscriptionid",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/webhooks/{webhookSubscriptionId}",
+      "operationId": "deleteWebhooksWebhooksubscriptionid",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/webhooks/{webhookSubscriptionId}",
+      "operationId": "patchWebhooksWebhooksubscriptionid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/webhooks",
+      "operationId": "getWebhooks",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/webhooks",
+      "operationId": "postWebhooks",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/webhooks/{webhookSubscriptionId}/delivery-status",
+      "operationId": "getWebhooksWebhooksubscriptionidDelivery-status",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/webhooks/{webhookSubscriptionId}/delivery-status/logs/{event}",
+      "operationId": "getWebhooksWebhooksubscriptionidDelivery-statusLogsEvent",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/templates",
+      "operationId": "getTemplates",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/templates/{templateId}",
+      "operationId": "deleteTemplatesTemplateid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/business-hours/schedules",
+      "operationId": "getBusiness-hoursSchedules",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/business-hours/schedules/{scheduleId}/definition",
+      "operationId": "getBusiness-hoursSchedulesScheduleidDefinition",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/business-hours/schedules/{scheduleId}/upcoming",
+      "operationId": "getBusiness-hoursSchedulesScheduleidUpcoming",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/business-hours/schedules/{scheduleId}/status",
+      "operationId": "getBusiness-hoursSchedulesScheduleidStatus",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/knowledge/collections/{collectionId}",
+      "operationId": "getKnowledgeCollectionsCollectionid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/knowledge/collections/{collectionId}/catalog",
+      "operationId": "getKnowledgeCollectionsCollectionidCatalog",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/knowledge/categories/{categoryId}",
+      "operationId": "getKnowledgeCategoriesCategoryid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/knowledge/categories/{categoryId}/translations",
+      "operationId": "getKnowledgeCategoriesCategoryidTranslations",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/knowledge/articles/{articleId}",
+      "operationId": "getKnowledgeArticlesArticleid",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/knowledge/articles/{articleId}",
+      "operationId": "deleteKnowledgeArticlesArticleid",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/knowledge/articles/{articleId}",
+      "operationId": "patchKnowledgeArticlesArticleid",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/knowledge/articles/{articleId}/translations",
+      "operationId": "getKnowledgeArticlesArticleidTranslations",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/knowledge/articles/{articleId}/translations",
+      "operationId": "patchKnowledgeArticlesArticleidTranslations",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/knowledge/articles",
+      "operationId": "postKnowledgeArticles",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/knowledge/categories",
+      "operationId": "postKnowledgeCategories",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/knowledge/collections",
+      "operationId": "getKnowledgeCollections",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/knowledge/collections",
+      "operationId": "postKnowledgeCollections",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/knowledge/articles/{articleId}/translations/{languageId}/publish",
+      "operationId": "postKnowledgeArticlesArticleidTranslationsLanguageidPublish",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/knowledge/articles/{articleId}/translations/{languageId}/unpublish",
+      "operationId": "postKnowledgeArticlesArticleidTranslationsLanguageidUnpublish",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/knowledge/articles/{articleId}/translations/{languageId}",
+      "operationId": "deleteKnowledgeArticlesArticleidTranslationsLanguageid",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/knowledge/articles/{articleId}/publish",
+      "operationId": "postKnowledgeArticlesArticleidPublish",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/knowledge/articles/{articleId}/unpublish",
+      "operationId": "postKnowledgeArticlesArticleidUnpublish",
+      "deprecated": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/knowledge/articles/{articleId}/parent/{parentId}",
+      "operationId": "patchKnowledgeArticlesArticleidParentParentid",
+      "deprecated": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/knowledge/articles/{articleId}/parent",
+      "operationId": "deleteKnowledgeArticlesArticleidParent",
+      "deprecated": false
+    },
+    {
+      "method": "POST",
+      "path": "/v1/knowledge/articles/attachments",
+      "operationId": "postKnowledgeArticlesAttachments",
+      "deprecated": false
+    },
+    {
+      "method": "GET",
+      "path": "/v1/organization",
+      "operationId": "getOrganization",
+      "deprecated": false
+    }
+  ]
+}

@@ -5,6 +5,7 @@ Queues-related API methods for DixaClient.
 import requests
 from typing import Dict, Any, Optional, List
 from requests.exceptions import RequestException, HTTPError
+from dixa_api.http import api_request
 
 
 def get_queues(self) -> Dict[str, Any]:
@@ -100,41 +101,9 @@ def get_queue_availability(self, queue_id: str) -> Dict[str, Any]:
         raise RequestException(f"Request failed: {e}") from e
 
 
-def get_queue_conversation_position(
-    self,
-    queue_id: str,
-    conversation_id: str
-) -> Dict[str, Any]:
-    """
-    Get the position of a conversation in its current queue.
-    
-    Args:
-        queue_id: The ID of the queue (required).
-        conversation_id: The ID of the conversation (required).
-    
-    Returns:
-        Dictionary containing the conversation's position in the queue.
-    
-    Raises:
-        HTTPError: If the API returns an HTTP error status (4xx, 5xx).
-        RequestException: If there's an error making the request.
-    """
-    url = f"{self.base_url}/queues/{queue_id}/conversations/{conversation_id}/position"
-    
-    try:
-        response = requests.get(url, headers=self.headers)
-        response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+def get_queue_conversation_position(self, conversation_id: int) -> Dict[str, Any]:
+    """Get the approximate position in the conversation's current queue."""
+    return api_request(self, "GET", f"/queues/conversation-position/{conversation_id}")
 
 
 def get_queue_agents(self, queue_id: str) -> Dict[str, Any]:
@@ -394,4 +363,3 @@ def delete_queue_remove_agents(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-

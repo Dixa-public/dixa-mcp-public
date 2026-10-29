@@ -324,7 +324,7 @@ def patch_end_users_bulk(
         HTTPError: If the API returns an HTTP error status (4xx, 5xx).
         RequestException: If there's an error making the request.
     """
-    url = f"{self.base_url}/endusers/bulk"
+    url = f"{self.base_url}/endusers"
         
     payload = {
         "data": end_users
@@ -454,7 +454,7 @@ def update_end_users_bulk(
         HTTPError: If the API returns an HTTP error status (4xx, 5xx).
         RequestException: If there's an error making the request.
     """
-    url = f"{self.base_url}/endusers/bulk"
+    url = f"{self.base_url}/endusers"
         
     payload = {
         "data": end_users
