@@ -24,8 +24,14 @@ async def fetch_unaggregated_data(
 
     Supply record_id, timezone, and either period_filter, csid_filter, or filters.
     Period filters take precedence over csid_filter, matching aggregated queries.
-    JSON-encoded structured arguments are accepted. Period intervals may use
-    shorthand dates; they are normalized to typed ISO timestamps.
+    JSON-encoded structured arguments are accepted.
+
+    Interval format: {"_type": "Interval", "start": "2026-10-28T17:30:00Z", "end": "2026-10-29T17:30:00Z"}
+    Put start and end directly beside _type, not inside a value object. Both
+    timestamps are ISO 8601 strings; shorthand dates are normalized to UTC.
+    Preset format: {"_type": "Preset", "value": {"_type": "PreviousWeek"}}
+    Only preset filters use the nested value object. A period_filter alone is
+    sufficient; filters may be omitted and are sent as an empty array.
 
     Fetch further pages only when necessary, using the returned pagination cursor
     unchanged as page_key. Retain record_id, timezone, and filters on every page.

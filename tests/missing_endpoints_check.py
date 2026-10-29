@@ -1,5 +1,7 @@
 """Exercise added and corrected endpoints through MCP and real HTTP encoding."""
 import importlib
+import copy
+import re
 import io
 import json
 import unittest
@@ -156,12 +158,63 @@ class MissingEndpointProtocolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("", stdout.getvalue())
 
     async def test_webhook_responses_redact_credentials_without_modifying_input(self):
-        response = {"data": {"id": WEBHOOK, "authorization": {"_type": "TokenAuth", "value": "dummy-secret"}, "customHeaders": {"X-Key": "dummy-header"}, "enabled": False}}
-        result, _, _ = await self.invoke("webhooks.fetch_webhook_subscription", {"webhook_id": WEBHOOK}, response)
-        self.assertEqual({"_type": "TokenAuth", "value": "[REDACTED]"}, result["data"]["authorization"])
-        self.assertEqual({"X-Key": "[REDACTED]"}, result["data"]["customHeaders"])
-        self.assertEqual("dummy-secret", response["data"]["authorization"]["value"])
-        self.assertFalse(result["data"]["enabled"])
+        subscription = {
+            "id": WEBHOOK, "name": "Test subscription", "url": "https://example.com/webhook",
+            "secretKey": "dummy-signing-secret",
+            "headers": {"Authorization": "Bearer dummy-token", "X-Custom": "dummy-header"},
+            "authorization": {"_type": "BasicAuth", "username": "dummy-user", "password": "dummy-password"},
+            "customHeaders": {"X-Legacy": "dummy-legacy-header"},
+            "enabled": False, "subscribedEvents": ["ConversationCreated"],
+            "filters": FILTERS,
+        }
+        sanitized = {
+            **subscription, "secretKey": "[REDACTED]",
+            "headers": {"Authorization": "[REDACTED]", "X-Custom": "[REDACTED]"},
+            "authorization": {"_type": "BasicAuth", "username": "[REDACTED]", "password": "[REDACTED]"},
+            "customHeaders": {"X-Legacy": "[REDACTED]"},
+        }
+        create_input = {**SUBSCRIPTION, "authorization": {"_type": "TokenAuth", "value": "dummy-outbound-token"},
+                        "customHeaders": {"X-Key": "dummy-outbound-header"}}
+        changes = {"customHeaders": {"X-Key": "dummy-updated-header"}}
+        cases = [
+            ("list_webhook_subscriptions", {}, True, None),
+            ("fetch_webhook_subscription", {"webhook_id": WEBHOOK}, False, None),
+            ("add_webhook_subscription", {"subscription": create_input}, False, create_input),
+            ("modify_webhook_subscription", {"webhook_id": WEBHOOK, "changes": changes}, False, changes),
+        ]
+        for name, arguments, is_list, outgoing in cases:
+            with self.subTest(tool=name):
+                response = {"data": [subscription] if is_list else subscription, "meta": {"next": CURSOR}}
+                original = copy.deepcopy(response)
+                original_arguments = copy.deepcopy(arguments)
+                result, request, _ = await self.invoke("webhooks." + name, arguments, response)
+                self.assertEqual({"data": [sanitized] if is_list else sanitized, "meta": {"next": CURSOR}}, result)
+                self.assertEqual(original, response, "Redaction must not mutate the upstream response")
+                self.assertEqual(original_arguments, arguments, "Redaction must not mutate caller inputs")
+                if outgoing is not None:
+                    self.assertEqual(outgoing, json.loads(request.body), "Outgoing credentials must remain intact")
+
+    async def test_documented_record_period_filters_reach_the_api_unchanged(self):
+        published = {tool.name: tool for tool in await self.client.list_tools()}
+        description = published["fetch_unaggregated_data"].description
+        expected = {
+            "Interval": {"_type": "Interval", "start": "2026-10-28T17:30:00Z", "end": "2026-10-29T17:30:00Z"},
+            "Preset": {"_type": "Preset", "value": {"_type": "PreviousWeek"}},
+        }
+        for label, period in expected.items():
+            match = re.search(label + r" format: (\{[^\n]+\})", description)
+            self.assertIsNotNone(match, "Published tool instructions must include an executable " + label + " example")
+            example = json.loads(match.group(1))
+            self.assertEqual(period, example)
+            for encoded in (False, True):
+                with self.subTest(period=label, json_encoded=encoded):
+                    _, request, _ = await self.invoke("analytics.fetch_unaggregated_data", {
+                        "record_id": "agent_presence_duration", "timezone": "Europe/Copenhagen", "page_limit": 1,
+                        "period_filter": json.dumps(example) if encoded else example,
+                    }, {"data": []})
+                    self.assertEqual({"id": "agent_presence_duration", "timezone": "Europe/Copenhagen",
+                                      "periodFilter": period, "filters": []}, json.loads(request.body))
+                    self.assertEqual(["1"], parse_qs(urlsplit(request.url).query)["pageLimit"])
 
     async def test_optional_collection_fields_are_omitted(self):
         _, request, _ = await self.invoke("knowledge.add_knowledge_collection", {"title": "Support"})
@@ -199,6 +252,24 @@ class MissingEndpointProtocolTests(unittest.IsolatedAsyncioTestCase):
 
 
 class AdditionalTransportTests(unittest.TestCase):
+    def test_redaction_handles_nested_responses_and_unexpected_credential_shapes(self):
+        from dixa_api.webhooks import redact_webhook_credentials
+        payload = [
+            {"data": {"secretKey": "dummy-nested-secret", "headers": {"authorization": "dummy-token", "X-Key": ["dummy-value"]}}},
+            {"secretKey": {"value": "dummy-secret"}, "headers": ["dummy-header"],
+             "authorization": "dummy-auth", "customHeaders": "dummy-custom"},
+            {"secretKey": None, "headers": {}, "authorization": {"_type": "NoAuth"}, "customHeaders": None},
+            {"id": "safe-id", "enabled": True, "events": ["ConversationCreated"]},
+        ]
+        original = copy.deepcopy(payload)
+        self.assertEqual([
+            {"data": {"secretKey": "[REDACTED]", "headers": {"authorization": "[REDACTED]", "X-Key": "[REDACTED]"}}},
+            {"secretKey": "[REDACTED]", "headers": "[REDACTED]", "authorization": "[REDACTED]", "customHeaders": "[REDACTED]"},
+            {"secretKey": None, "headers": {}, "authorization": {"_type": "NoAuth"}, "customHeaders": None},
+            {"id": "safe-id", "enabled": True, "events": ["ConversationCreated"]},
+        ], redact_webhook_credentials(payload))
+        self.assertEqual(original, payload)
+
     def test_timeout_is_not_retried_or_exposed_with_sensitive_details(self):
         from dixa_api.http import api_request
         client = DixaClient(api_key="test-api-key")
