@@ -202,6 +202,8 @@ The Dixa MCP Server provides access to 124 different tools covering all 126 docu
 - Browse collections and their category/article catalogs
 - Read translated article and category content
 - Create, edit, publish, unpublish, move, and delete articles and translations
+- Creating an article with `pre_release=true` requires a parent category: call `list_knowledge_collections`, then `fetch_knowledge_collection_catalog` to find one. Keep the requested pre-release setting.
+- For article creation, omit `tags` or use `[]` for no tags; the server omits empty tags because the Dixa API rejects an empty tag list.
 - Publish multilingual pre-release articles as a complete set; Dixa does not permit publishing only one translation
 - Upload image attachments for article content
 

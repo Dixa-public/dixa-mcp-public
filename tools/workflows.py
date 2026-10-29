@@ -26,8 +26,11 @@ TOOL_PREREQUISITES = {'activate_tag': 'Call list_tags to identify the tag, inclu
  'add_end_users_bulk': 'Call list_end_users with matching email/phone to check for duplicates before '
                        'creating users.',
  'add_knowledge_article': 'Call list_knowledge_collections then fetch_knowledge_collection_catalog for the '
-                          'parent category. Resolve tag IDs with list_tags and attachment URLs with an '
-                          'approved upload_knowledge_article_attachments call.',
+                          'parent category, which is required when pre_release=True. If a collection is '
+                          'empty, inspect another approved collection; do not disable pre-release to '
+                          'bypass a missing parent. Resolve non-empty tag IDs with list_tags; omitted '
+                          'or empty tags mean no tags. Resolve attachment URLs with an approved '
+                          'upload_knowledge_article_attachments call.',
  'add_knowledge_category': 'Call list_knowledge_collections for a top-level parent or '
                            'fetch_knowledge_collection_catalog for a nested parent. Inspect the selected '
                            'parent and confirm translated titles.',

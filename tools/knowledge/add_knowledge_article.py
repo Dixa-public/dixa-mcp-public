@@ -19,7 +19,9 @@ async def add_knowledge_article(
     """Add a draft knowledge article with optional placement and metadata.
 
     Discover a parent category with ``list_knowledge_collections`` followed by
-    ``fetch_knowledge_collection_catalog`` when the article should be nested.
+    ``fetch_knowledge_collection_catalog`` when the article should be nested
+    or ``pre_release=True``. Pre-release creation requires a parent category;
+    never disable pre-release merely to bypass a missing parent.
     Supply titles and HTML bodies inside ``translations``; there are no
     top-level ``title`` or ``content`` fields. Creation does not publish the
     draft for search.
@@ -34,10 +36,11 @@ async def add_knowledge_article(
             Omit the argument to send no translations; an explicit empty list
             is sent unchanged. Attachment content should reference public URLs
             returned by ``upload_knowledge_article_attachments``.
-        parent_id: Parent category ID discovered in a collection catalog. Omit
-            it to send no parent; use the movement tools to change it later.
-        tags: Tag IDs to assign. Omit to send no tag field; an explicit empty
-            list is preserved.
+        parent_id: Parent category ID discovered in a collection catalog.
+            Required when ``pre_release=True``; otherwise optional. Use the
+            movement tools to change placement later.
+        tags: Tag IDs to assign. Omit or pass an empty list for no tags. Empty
+            lists are omitted from the API request because Dixa rejects them.
         pre_release: ``True`` to make the article pre-release only or ``False``
             to explicitly disable that setting. Omit it to use Dixa's default.
 

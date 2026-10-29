@@ -173,13 +173,20 @@ def create_knowledge_article(
     tags: Optional[List[str]] = None,
     pre_release: Optional[bool] = None,
 ) -> Dict[str, Any]:
-    """Create a knowledge article."""
+    """Create a knowledge article, applying Dixa's creation constraints."""
+    if pre_release is True and (not parent_id or not parent_id.strip()):
+        raise ValueError(
+            "parent_id is required when pre_release=True. Call "
+            "list_knowledge_collections, then fetch_knowledge_collection_catalog "
+            "to select a parent category. Keep the requested pre_release setting."
+        )
     payload: Dict[str, Any] = {}
     if translations is not None:
         payload["translations"] = translations
     if parent_id is not None:
         payload["parentId"] = parent_id
-    if tags is not None:
+    # Dixa rejects an explicit empty tag list; omission creates an untagged article.
+    if tags:
         payload["tags"] = tags
     if pre_release is not None:
         payload["preRelease"] = pre_release

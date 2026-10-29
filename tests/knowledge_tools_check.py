@@ -262,7 +262,7 @@ class KnowledgeClientTests(unittest.TestCase):
         self.client.create_knowledge_article(
             translations=translations,
             parent_id="category-1",
-            tags=[],
+            tags=["tag-1"],
             pre_release=False,
         )
 
@@ -276,10 +276,19 @@ class KnowledgeClientTests(unittest.TestCase):
             json={
                 "translations": translations,
                 "parentId": "category-1",
-                "tags": [],
+                "tags": ["tag-1"],
                 "preRelease": False,
             },
         )
+
+    def test_pre_release_creation_requires_parent_before_http_request(self):
+        for parent_id in (None, "", "   "):
+            with self.subTest(parent_id=parent_id):
+                with self.assertRaisesRegex(ValueError, "parent_id is required"):
+                    self.client.create_knowledge_article(
+                        parent_id=parent_id, pre_release=True
+                    )
+        self.request_mock.assert_not_called()
 
     def test_patch_article_mapping_and_empty_tag_operations(self):
         tags = {"add": [], "remove": []}
@@ -962,6 +971,38 @@ class KnowledgeCategoryProtocolTests(unittest.IsolatedAsyncioTestCase):
 
 
 class KnowledgeProtocolMetadataTests(unittest.IsolatedAsyncioTestCase):
+    async def test_article_creation_handles_empty_tags_through_mcp(self):
+        import server
+
+        real_client = DixaClient(api_key="test-api-key")
+        add_module = sys.modules[knowledge_tools.add_knowledge_article.__module__]
+        translation = {"languageId": "en", "title": "Disposable regression test"}
+        with patch.object(add_module, "get_dixa_client", return_value=real_client):
+            with patch.object(knowledge.requests, "request") as request:
+                request.return_value.status_code = 200
+                request.return_value.json.return_value = {"data": {"id": "article-1"}}
+                async with Client(server.mcp) as client:
+                    for tags in ([], "[]", ["tag-1"]):
+                        await client.call_tool("add_knowledge_article", {
+                            "translations": [translation], "parent_id": "category-1",
+                            "pre_release": True, "tags": tags,
+                        })
+                        payload = request.call_args.kwargs["json"]
+                        self.assertEqual("category-1", payload["parentId"])
+                        self.assertIs(True, payload["preRelease"])
+                        self.assertEqual([translation], payload["translations"])
+                        if tags == ["tag-1"]:
+                            self.assertEqual(["tag-1"], payload["tags"])
+                        else:
+                            self.assertNotIn("tags", payload)
+
+                    request.reset_mock()
+                    with self.assertRaisesRegex(ToolError, "fetch_knowledge_collection_catalog"):
+                        await client.call_tool("add_knowledge_article", {
+                            "translations": [translation], "pre_release": True,
+                        })
+                    request.assert_not_called()
+
     async def test_protocol_coerces_claude_json_encoded_structured_arguments(self):
         import server
 
