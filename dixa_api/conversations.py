@@ -4,9 +4,10 @@ Conversations-related API methods for DixaClient.
 
 import requests
 from typing import Dict, Any, Optional, List, Literal
-from requests.exceptions import RequestException, HTTPError
+from requests.exceptions import RequestException
 from urllib.parse import unquote
 from dixa_api.http import api_request
+from dixa_api.safety import decode_response, raise_api_error
 
 def create_conversation_note(
     self,
@@ -60,17 +61,9 @@ def create_conversation_note(
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def create_conversation_notes_bulk(
@@ -141,17 +134,9 @@ def create_conversation_notes_bulk(
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def patch_conversation_anonymize(
@@ -192,17 +177,9 @@ def patch_conversation_anonymize(
     try:
         response = requests.patch(url, headers=self.headers, params=params)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def patch_conversation_message_anonymize(
@@ -239,17 +216,9 @@ def patch_conversation_message_anonymize(
     try:
         response = requests.patch(url, headers=self.headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def create_conversation_tags_bulk(
@@ -286,17 +255,9 @@ def create_conversation_tags_bulk(
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def update_conversation_claim(
@@ -339,18 +300,10 @@ def update_conversation_claim(
         if response.status_code == 204:
             return {"success": True, "message": "Conversation claimed successfully"}
         if response.content:
-            return response.json()
+            return decode_response(response)
         return {"success": True}
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def update_conversation_close(
@@ -390,18 +343,10 @@ def update_conversation_close(
         if response.status_code == 204:
             return {"success": True, "message": "Conversation closed successfully"}
         if response.content:
-            return response.json()
+            return decode_response(response)
         return {"success": True}
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def update_conversation_transfer_queue(
@@ -445,18 +390,10 @@ def update_conversation_transfer_queue(
         if response.status_code == 204:
             return {"success": True, "message": "Conversation transferred to queue successfully"}
         if response.content:
-            return response.json()
+            return decode_response(response)
         return {"success": True}
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def create_conversation(
@@ -564,17 +501,9 @@ def create_conversation(
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_conversation(
@@ -599,17 +528,9 @@ def get_conversation(
     try:
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_conversation_flows(self, channel: Optional[str] = None) -> Dict[str, Any]:
@@ -639,17 +560,9 @@ def get_conversation_activity_log(
     try:
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def update_conversation_link(
@@ -689,18 +602,10 @@ def update_conversation_link(
         if response.status_code == 204:
             return {"success": True, "message": "Conversation linked successfully"}
         if response.content:
-            return response.json()
+            return decode_response(response)
         return {"success": True}
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def create_conversations_import(
@@ -740,17 +645,9 @@ def create_conversations_import(
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_conversation_notes(
@@ -779,17 +676,9 @@ def get_conversation_notes(
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_conversation_linked(
@@ -818,17 +707,9 @@ def get_conversation_linked(
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_conversation_messages(
@@ -857,17 +738,9 @@ def get_conversation_messages(
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_organization_activity_log(
@@ -892,17 +765,9 @@ def get_organization_activity_log(
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_conversation_ratings(
@@ -931,17 +796,9 @@ def get_conversation_ratings(
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def patch_conversation_custom_attributes(
@@ -974,17 +831,9 @@ def patch_conversation_custom_attributes(
     try:
         response = requests.patch(url, json=custom_attributes, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def update_conversation_reopen(
@@ -1018,18 +867,10 @@ def update_conversation_reopen(
         if response.status_code == 204:
             return {"success": True, "message": "Conversation reopened successfully"}
         if response.content:
-            return response.json()
+            return decode_response(response)
         return {"success": True}
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def post_search_conversations(
@@ -1096,17 +937,9 @@ def post_search_conversations(
         else:
             response = requests.post(url, headers=headers, params=params)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def update_conversation_tag(
@@ -1142,18 +975,10 @@ def update_conversation_tag(
         if response.status_code == 204:
             return {"success": True, "message": "Conversation tagged successfully"}
         if response.content:
-            return response.json()
+            return decode_response(response)
         return {"success": True}
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def delete_conversation_tag(
@@ -1188,18 +1013,10 @@ def delete_conversation_tag(
         if response.status_code == 204:
             return {"success": True, "message": "Conversation untagged successfully"}
         if response.content:
-            return response.json()
+            return decode_response(response)
         return {"success": True}
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def update_conversation_followup(
@@ -1239,18 +1056,10 @@ def update_conversation_followup(
         if response.status_code == 204:
             return {"success": True, "message": "Conversation follow-up status updated successfully"}
         if response.content:
-            return response.json()
+            return decode_response(response)
         return {"success": True}
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def create_conversation_message(

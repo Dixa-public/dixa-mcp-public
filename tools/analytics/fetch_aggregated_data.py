@@ -66,9 +66,11 @@ async def fetch_aggregated_data(
         timezone: IANA timezone name (required). Examples: "Europe/Copenhagen", "America/New_York", "UTC".
         
         period_filter: Time period filter (PREFERRED - use this for most queries). Optional.
-            MUST be passed as a dictionary/object, NOT as a JSON string.
+            Accepts a dictionary/object or a JSON-encoded object.
             Preset format: {"_type": "Preset", "value": {"_type": "PreviousWeek"}}
             Custom interval format: {"_type": "Interval", "start": "2025-05-19T00:00:00Z", "end": "2025-11-19T23:59:59Z"}
+            For intervals, start and end are ISO 8601 strings directly beside _type;
+            do not nest them inside value. Only preset filters use the nested value object.
             Common preset values: "PreviousWeek", "PreviousMonth", "PreviousQuarter", "PreviousYear", "Today", "Yesterday"
             IMPORTANT: 
             - If provided, csid_filter will be ignored and NOT included in the request.
@@ -274,9 +276,6 @@ async def fetch_aggregated_data(
     if aggregations:
         request["aggregations"] = aggregations
     
-    # Log the exact payload being sent
-    payload_json = json.dumps(request, indent=2)
-    print(f"[fetch_aggregated_data] Request payload:\n{payload_json}")
     
     client = get_dixa_client()
     return client.post_analytics_metric_data(request=request)

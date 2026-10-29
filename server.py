@@ -124,12 +124,9 @@ def setup_http_middleware():
         from starlette.requests import Request
         from starlette.responses import Response
         from typing import Callable, Awaitable
-        import sys
         
         class AuthExtractionMiddleware(BaseHTTPMiddleware):
             async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
-                # Log that middleware is running
-                print(f"[StarletteMiddleware] Processing request: {request.method} {request.url.path}", file=sys.stderr, flush=True)
                 
                 # Extract Authorization header from HTTP request
                 auth_header = request.headers.get("Authorization", "")
@@ -139,27 +136,9 @@ def setup_http_middleware():
                     if token:
                         # Store in context variable for use in tools
                         _client_api_key.set(token)
-                        print(f"[StarletteMiddleware] ✓ Extracted API key from header: {token[:20]}...", file=sys.stderr, flush=True)
-                        print(f"[StarletteMiddleware] Context var set, value: {_client_api_key.get()[:20] if _client_api_key.get() else 'None'}...", file=sys.stderr, flush=True)
-                    else:
-                        print(f"[StarletteMiddleware] Authorization header present but empty after processing", file=sys.stderr, flush=True)
-                else:
-                    # Debug: show all headers to see what we're getting
-                    all_headers = dict(request.headers)
-                    print(f"[StarletteMiddleware] ✗ No Authorization header. All headers: {list(all_headers.keys())}", file=sys.stderr, flush=True)
-                    # Show a few key headers for debugging
-                    for key in ['authorization', 'Authorization', 'x-authorization', 'X-Authorization']:
-                        if key in all_headers:
-                            print(f"[StarletteMiddleware] Found {key}: {all_headers[key][:20]}...", file=sys.stderr, flush=True)
                 
                 response = await call_next(request)
-                
-                # Verify context var is still set after call
-                if _client_api_key.get():
-                    print(f"[StarletteMiddleware] Context var still set after call: {_client_api_key.get()[:20]}...", file=sys.stderr, flush=True)
-                else:
-                    print(f"[StarletteMiddleware] Context var lost after call", file=sys.stderr, flush=True)
-                
+
                 return response
         
         # Try to add middleware to FastMCP's HTTP/SSE apps
@@ -172,18 +151,12 @@ def setup_http_middleware():
                 if app and hasattr(app, 'add_middleware'):
                     app.add_middleware(AuthExtractionMiddleware)
                     apps_added.append(app_attr)
-                    print(f"[StarletteMiddleware] Added middleware to {app_attr}", file=sys.stderr, flush=True)
         
         if not apps_added:
-            print("[StarletteMiddleware] Could not find app to add middleware to", file=sys.stderr, flush=True)
             # Try to access through transport after it's created
             return False
         return True
-    except Exception as e:
-        import sys
-        print(f"[StarletteMiddleware] Failed to setup: {e}", file=sys.stderr, flush=True)
-        import traceback
-        traceback.print_exc(file=sys.stderr)
+    except Exception:
         return False
 
 # Try to setup immediately (might work if apps are already created)
@@ -198,28 +171,21 @@ try:
         
         async def on_call_tool(self, context: MiddlewareContext, call_next):
             """Try to extract Authorization header from context."""
-            import sys
             # Try to get the Authorization header from the request
             auth_header = None
-            
-            # Debug: log what's available in context
-            print(f"[FastMCPMiddleware] Context attributes: {dir(context)}", file=sys.stderr, flush=True)
-            
+
             # Try different ways to access headers
             if hasattr(context, 'headers'):
                 auth_header = context.headers.get("Authorization", "")
-                print(f"[FastMCPMiddleware] Found headers attribute", file=sys.stderr, flush=True)
             elif hasattr(context, 'request'):
                 request = context.request
                 if hasattr(request, 'headers'):
                     auth_header = request.headers.get("Authorization", "")
-                    print(f"[FastMCPMiddleware] Found request.headers", file=sys.stderr, flush=True)
             elif hasattr(context, 'scope'):
                 scope = context.scope
                 if isinstance(scope, dict) and 'headers' in scope:
                     headers = {k.decode(): v.decode() for k, v in scope['headers']}
                     auth_header = headers.get("authorization", headers.get("Authorization", ""))
-                    print(f"[FastMCPMiddleware] Found scope.headers: {list(headers.keys())[:5]}", file=sys.stderr, flush=True)
             
             # Try to access the current ASGI scope from contextvars or task context
             try:
@@ -233,31 +199,23 @@ try:
                                      for k, v in scope['headers']}
                             if 'authorization' in headers or 'Authorization' in headers:
                                 auth_header = headers.get("authorization") or headers.get("Authorization")
-                                print(f"[FastMCPMiddleware] Found header in context var", file=sys.stderr, flush=True)
-            except Exception as e:
-                print(f"[FastMCPMiddleware] Error accessing context vars: {e}", file=sys.stderr, flush=True)
+            except Exception:
+                pass  # Do not log authentication context or exception details.
             
             if auth_header:
                 token = auth_header.replace("Bearer ", "").strip()
                 if token:
                     _client_api_key.set(token)
-                    print(f"[FastMCPMiddleware] ✓ Extracted API key: {token[:20]}...", file=sys.stderr, flush=True)
-            else:
-                print(f"[FastMCPMiddleware] ✗ No Authorization header found", file=sys.stderr, flush=True)
             
             return await call_next(context)
     
     # Add the middleware to FastMCP
     mcp.add_middleware(AuthExtractionMiddleware())
-    import sys
-    print("[FastMCP] Added auth extraction middleware (fallback)", file=sys.stderr, flush=True)
 except ImportError:
     # FastMCP middleware might not be available in all versions
-    import sys
-    print("[FastMCP] FastMCP middleware not available", file=sys.stderr, flush=True)
-except Exception as e:
-    import sys
-    print(f"[FastMCP] Error setting up FastMCP middleware: {e}", file=sys.stderr, flush=True)
+    pass  # Do not log authentication context or exception details.
+except Exception:
+    pass  # Do not log authentication context or exception details.
 
 # Monkey-patch the http_app and sse_app properties to add middleware when they're first accessed
 # This way we can intercept app creation even inside run()
@@ -268,16 +226,11 @@ from typing import Callable, Awaitable
 
 class AuthExtractionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
-        print(f"[HTTPMiddleware] Processing: {request.method} {request.url.path}", file=sys.stderr, flush=True)
         auth_header = request.headers.get("Authorization", "")
         if auth_header:
             token = auth_header.replace("Bearer ", "").strip()
             if token:
                 _client_api_key.set(token)
-                print(f"[HTTPMiddleware] ✓ Set API key: {token[:20]}...", file=sys.stderr, flush=True)
-        else:
-            all_headers = dict(request.headers)
-            print(f"[HTTPMiddleware] ✗ No Auth header. Keys: {list(all_headers.keys())[:10]}", file=sys.stderr, flush=True)
         
         response = await call_next(request)
         return response
@@ -298,9 +251,8 @@ if hasattr(type(mcp), 'http_app'):
                 try:
                     app.add_middleware(AuthExtractionMiddleware)
                     app._auth_middleware_added = True
-                    print("[MonkeyPatch] Added middleware to http_app", file=sys.stderr, flush=True)
-                except Exception as e:
-                    print(f"[MonkeyPatch] Failed to add middleware to http_app: {e}", file=sys.stderr, flush=True)
+                except Exception:
+                    pass  # Do not log authentication context or exception details.
         return app
     type(mcp).http_app = property(http_app_with_middleware)
 
@@ -313,9 +265,8 @@ if hasattr(type(mcp), 'sse_app'):
                 try:
                     app.add_middleware(AuthExtractionMiddleware)
                     app._auth_middleware_added = True
-                    print("[MonkeyPatch] Added middleware to sse_app", file=sys.stderr, flush=True)
-                except Exception as e:
-                    print(f"[MonkeyPatch] Failed to add middleware to sse_app: {e}", file=sys.stderr, flush=True)
+                except Exception:
+                    pass  # Do not log authentication context or exception details.
         return app
     type(mcp).sse_app = property(sse_app_with_middleware)
 
@@ -328,13 +279,11 @@ if hasattr(type(mcp), 'streamable_http_app'):
                 try:
                     app.add_middleware(AuthExtractionMiddleware)
                     app._auth_middleware_added = True
-                    print("[MonkeyPatch] Added middleware to streamable_http_app", file=sys.stderr, flush=True)
-                except Exception as e:
-                    print(f"[MonkeyPatch] Failed to add middleware to streamable_http_app: {e}", file=sys.stderr, flush=True)
+                except Exception:
+                    pass  # Do not log authentication context or exception details.
         return app
     type(mcp).streamable_http_app = property(streamable_http_app_with_middleware)
 
-print("[MonkeyPatch] Set up property interceptors for app middleware injection", file=sys.stderr, flush=True)
 
 # Import and register tools from the tools package
 from tools.organization import (

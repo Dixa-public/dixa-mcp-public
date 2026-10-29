@@ -12,6 +12,7 @@ from requests.exceptions import HTTPError, RequestException
 
 from dixa_api import DixaClient
 from dixa_api import knowledge
+from dixa_api.safety import ITEM_ERROR_MESSAGE
 from tools import knowledge as knowledge_tools
 
 
@@ -335,7 +336,9 @@ class KnowledgeClientTests(unittest.TestCase):
             translations=translations,
         )
 
-        self.assertIs(api_result, result)
+        self.assertEqual(api_result["data"], result["data"])
+        self.assertEqual([{"languageId": "de", "message": ITEM_ERROR_MESSAGE}], result["partialErrors"])
+        self.assertEqual("Translation rejected", api_result["partialErrors"][0]["message"])
         self.assert_last_request(
             "PATCH",
             "/knowledge/articles/article-1/translations",
@@ -486,7 +489,9 @@ class KnowledgeClientTests(unittest.TestCase):
 
         result = self.client.upload_knowledge_article_attachments(files=files)
 
-        self.assertIs(api_result, result)
+        self.assertEqual(api_result["data"], result["data"])
+        self.assertEqual([{"code": 500, "message": ITEM_ERROR_MESSAGE}], result["partialErrors"])
+        self.assertEqual("Upload failed", api_result["partialErrors"][0]["message"])
         self.assert_last_request(
             "POST",
             "/knowledge/articles/attachments",
@@ -496,7 +501,7 @@ class KnowledgeClientTests(unittest.TestCase):
             ],
         )
 
-    def test_json_http_error_is_enriched_and_preserves_response(self):
+    def test_json_http_error_withholds_details_and_response(self):
         response = FakeResponse(
             status_code=400,
             json_data={"message": "Invalid knowledge request"},
@@ -506,11 +511,11 @@ class KnowledgeClientTests(unittest.TestCase):
         with self.assertRaises(HTTPError) as raised:
             self.client.get_knowledge_collection("invalid")
 
-        self.assertIs(response, raised.exception.response)
-        self.assertIn("HTTP 400 error", str(raised.exception))
-        self.assertIn("Invalid knowledge request", str(raised.exception))
+        self.assertIsNone(raised.exception.response)
+        self.assertEqual("Dixa API returned HTTP 400", str(raised.exception))
+        self.assertNotIn("Invalid knowledge request", str(raised.exception))
 
-    def test_plain_text_http_error_is_enriched(self):
+    def test_plain_text_http_error_withholds_details(self):
         response = FakeResponse(
             status_code=502,
             text="upstream unavailable",
@@ -521,8 +526,8 @@ class KnowledgeClientTests(unittest.TestCase):
         with self.assertRaises(HTTPError) as raised:
             self.client.get_knowledge_collection("collection-1")
 
-        self.assertIn("HTTP 502 error", str(raised.exception))
-        self.assertIn("upstream unavailable", str(raised.exception))
+        self.assertEqual("Dixa API returned HTTP 502", str(raised.exception))
+        self.assertNotIn("upstream unavailable", str(raised.exception))
 
     def test_network_error_is_wrapped_as_request_failure(self):
         original = RequestException("connection closed")
@@ -531,8 +536,10 @@ class KnowledgeClientTests(unittest.TestCase):
         with self.assertRaises(RequestException) as raised:
             self.client.get_knowledge_collection("collection-1")
 
-        self.assertIn("Request failed: connection closed", str(raised.exception))
-        self.assertIs(original, raised.exception.__cause__)
+        self.assertIn("outcome may be unknown", str(raised.exception))
+        self.assertNotIn("connection closed", str(raised.exception))
+        self.assertIsNone(raised.exception.__cause__)
+        self.assertTrue(raised.exception.__suppress_context__)
 
 
 class KnowledgeMultipartEncodingTests(unittest.TestCase):
@@ -965,7 +972,7 @@ class KnowledgeCategoryProtocolTests(unittest.IsolatedAsyncioTestCase):
                         json_data={"message": "Category creation failed"},
                     ),
                 ) as request:
-                    with self.assertRaisesRegex(ToolError, "HTTP {} error".format(status_code)):
+                    with self.assertRaisesRegex(ToolError, "HTTP {}".format(status_code)):
                         await client.call_tool("add_knowledge_category", {"parent_id": "collection-1"})
                     request.assert_called_once()
 

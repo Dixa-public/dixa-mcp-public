@@ -3,8 +3,9 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
-from requests.exceptions import HTTPError, RequestException
+from requests.exceptions import RequestException
 from dixa_api.http import api_request
+from dixa_api.safety import decode_response, raise_api_error
 
 
 MultipartFile = Tuple[str, Tuple[str, bytes, str]]
@@ -37,16 +38,9 @@ def _knowledge_request(
         response.raise_for_status()
         if response.status_code == 204:
             return {"success": True}
-        return response.json()
-    except HTTPError as exc:
-        error_message = f"HTTP {response.status_code} error: {exc}"
-        try:
-            error_message += f" - {response.json()}"
-        except ValueError:
-            error_message += f" - {response.text}"
-        raise HTTPError(error_message, response=response) from exc
+        return decode_response(response)
     except RequestException as exc:
-        raise RequestException(f"Request failed: {exc}") from exc
+        raise_api_error(exc)
 
 
 def get_knowledge_collections(

@@ -99,7 +99,7 @@ def get_conversation(self, conversation_id: str) -> Dict[str, Any]:
 2. **Async Functions**: Make tool functions async for better performance
 3. **Type Hints**: Always include type hints for parameters and return values
 4. **Docstrings**: Include clear docstrings explaining what the tool does
-5. **Error Handling**: Let DixaClient handle HTTP errors, but add context-specific error messages if needed
+5. **Error Handling**: Use the shared DixaClient safety helpers. Never include upstream response bodies, request headers, credentials, raw exception messages or full URLs in tool errors or logs. Keep partial failures visible using sanitized diagnostics.
 6. **Naming**: Use descriptive names that match the Dixa API endpoint names
 7. **Creation/Modification Endpoints**: For POST, PATCH, PUT, DELETE endpoints:
    - Add a clear ⚠️ WARNING in the docstring that this modifies data

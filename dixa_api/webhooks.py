@@ -1,20 +1,33 @@
 """Webhook subscription API methods with credential-safe responses."""
 from typing import Any, Dict
 from dixa_api.http import api_request
+from dixa_api.safety import redact_webhook_diagnostics
 
 
 def redact_webhook_credentials(value):
-    """Preserve subscription metadata while hiding auth and custom-header values."""
+    """Hide response signing secrets/headers and request-form credentials.
+
+    Dixa returns ``secretKey`` and ``headers`` on subscriptions; create/update
+    inputs instead use ``authorization`` and ``customHeaders``. Preserve
+    metadata and header names, without changing the original response or input.
+    """
     if isinstance(value, list):
         return [redact_webhook_credentials(item) for item in value]
     if not isinstance(value, dict):
         return value
     result = {}
     for key, item in value.items():
-        if key == "authorization" and isinstance(item, dict):
-            result[key] = {name: content if name == "_type" else "[REDACTED]" for name, content in item.items()}
-        elif key == "customHeaders" and isinstance(item, dict):
-            result[key] = {name: "[REDACTED]" for name in item}
+        if key == "secretKey":
+            result[key] = None if item is None else "[REDACTED]"
+        elif key in ("authorization", "customHeaders", "headers"):
+            if isinstance(item, dict):
+                result[key] = {
+                    name: content if key == "authorization" and name == "_type" else "[REDACTED]"
+                    for name, content in item.items()
+                }
+            else:
+                # Do not expose credentials if an upstream field changes shape.
+                result[key] = None if item is None else "[REDACTED]"
         else:
             result[key] = redact_webhook_credentials(item)
     return result
@@ -91,11 +104,12 @@ def get_webhook_delivery_status(
     webhook_id: str,
 ) -> Dict[str, Any]:
     """Call GET /webhooks/{webhook_id}/delivery-status."""
-    return api_request(
+    result = api_request(
         self,
         'GET',
         f'/webhooks/{webhook_id}/delivery-status',
     )
+    return redact_webhook_diagnostics(redact_webhook_credentials(result))
 
 
 def get_webhook_event_logs(
@@ -104,8 +118,9 @@ def get_webhook_event_logs(
     event: str,
 ) -> Dict[str, Any]:
     """Call GET /webhooks/{webhook_id}/delivery-status/logs/{event}."""
-    return api_request(
+    result = api_request(
         self,
         'GET',
         f'/webhooks/{webhook_id}/delivery-status/logs/{event}',
     )
+    return redact_webhook_diagnostics(redact_webhook_credentials(result))

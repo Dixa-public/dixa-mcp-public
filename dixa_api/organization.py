@@ -4,7 +4,8 @@ Organization-related API methods for DixaClient.
 
 import requests
 from typing import Dict, Any, Optional, List, Literal
-from requests.exceptions import RequestException, HTTPError
+from requests.exceptions import RequestException
+from dixa_api.safety import decode_response, raise_api_error
 
 def get_organization(self) -> Dict[str, Any]:
     """
@@ -22,16 +23,7 @@ def get_organization(self) -> Dict[str, Any]:
     try:
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()  # Raises HTTPError for bad responses
-        return response.json()
-    except HTTPError as e:
-        # Provide more context about the error
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
