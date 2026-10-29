@@ -6,6 +6,7 @@ import requests
 from typing import Dict, Any, Optional, List, Literal
 from requests.exceptions import RequestException, HTTPError
 from urllib.parse import unquote
+from dixa_api.http import api_request
 
 def create_conversation_note(
     self,
@@ -70,7 +71,6 @@ def create_conversation_note(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def create_conversation_notes_bulk(
@@ -152,7 +152,6 @@ def create_conversation_notes_bulk(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def patch_conversation_anonymize(
@@ -204,7 +203,6 @@ def patch_conversation_anonymize(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def patch_conversation_message_anonymize(
@@ -252,7 +250,6 @@ def patch_conversation_message_anonymize(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def create_conversation_tags_bulk(
@@ -300,7 +297,6 @@ def create_conversation_tags_bulk(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def update_conversation_claim(
@@ -355,7 +351,6 @@ def update_conversation_claim(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def update_conversation_close(
@@ -407,7 +402,6 @@ def update_conversation_close(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def update_conversation_transfer_queue(
@@ -463,7 +457,6 @@ def update_conversation_transfer_queue(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def create_conversation(
@@ -582,7 +575,6 @@ def create_conversation(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_conversation(
@@ -618,43 +610,11 @@ def get_conversation(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
-def get_conversation_flows(
-    self,
-    conversation_id: str
-) -> Dict[str, Any]:
-    """
-    Get (list) flows for a conversation.
-        
-    Args:
-        conversation_id: The ID of the conversation to get flows for (required).
-        
-    Returns:
-        Dictionary containing the list of flows for the conversation.
-        
-    Raises:
-        HTTPError: If the API returns an HTTP error status (4xx, 5xx).
-        RequestException: If there's an error making the request.
-    """
-    url = f"{self.base_url}/conversations/{conversation_id}/flows"
-        
-    try:
-        response = requests.get(url, headers=self.headers)
-        response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
-    
+def get_conversation_flows(self, channel: Optional[str] = None) -> Dict[str, Any]:
+    """List organization-wide flows, optionally filtered by channel."""
+    return api_request(self, "GET", "/conversations/flows", params={"channel": channel})
 
 
 def get_conversation_activity_log(
@@ -690,7 +650,6 @@ def get_conversation_activity_log(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def update_conversation_link(
@@ -742,7 +701,6 @@ def update_conversation_link(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def create_conversations_import(
@@ -793,7 +751,6 @@ def create_conversations_import(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_conversation_notes(
@@ -833,7 +790,6 @@ def get_conversation_notes(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_conversation_linked(
@@ -873,7 +829,6 @@ def get_conversation_linked(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_conversation_messages(
@@ -913,7 +868,6 @@ def get_conversation_messages(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_organization_activity_log(
@@ -949,7 +903,6 @@ def get_organization_activity_log(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def get_conversation_ratings(
@@ -989,7 +942,6 @@ def get_conversation_ratings(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def patch_conversation_custom_attributes(
@@ -1033,7 +985,6 @@ def patch_conversation_custom_attributes(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def update_conversation_reopen(
@@ -1079,7 +1030,6 @@ def update_conversation_reopen(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def post_search_conversations(
@@ -1157,7 +1107,6 @@ def post_search_conversations(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def update_conversation_tag(
@@ -1205,7 +1154,6 @@ def update_conversation_tag(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def delete_conversation_tag(
@@ -1252,7 +1200,6 @@ def delete_conversation_tag(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
 
 
 def update_conversation_followup(
@@ -1304,4 +1251,74 @@ def update_conversation_followup(
         raise HTTPError(error_msg, response=response) from e
     except RequestException as e:
         raise RequestException(f"Request failed: {e}") from e
-    
+
+
+def create_conversation_message(
+    self,
+    conversation_id: int,
+    message: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Call POST /conversations/{conversation_id}/messages."""
+    return api_request(
+        self,
+        'POST',
+        f'/conversations/{conversation_id}/messages',
+        payload=message,
+    )
+
+
+def create_conversation_rating_offer(
+    self,
+    conversation_id: int,
+    offer: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Call POST /conversations/{conversation_id}/ratings/offer."""
+    return api_request(
+        self,
+        'POST',
+        f'/conversations/{conversation_id}/ratings/offer',
+        payload=offer,
+    )
+
+
+def create_conversation_rating_result(
+    self,
+    conversation_id: int,
+    rating_id: str,
+    result: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Call POST /conversations/{conversation_id}/ratings/{rating_id}/submit."""
+    return api_request(
+        self,
+        'POST',
+        f'/conversations/{conversation_id}/ratings/{rating_id}/submit',
+        payload=result,
+    )
+
+
+def get_conversation_rating_legacy(
+    self,
+    conversation_id: int,
+) -> Dict[str, Any]:
+    """Call GET /conversations/{conversation_id}/rating."""
+    return api_request(
+        self,
+        'GET',
+        f'/conversations/{conversation_id}/rating',
+    )
+
+
+def get_search_conversations_legacy(
+    self,
+    query: str,
+    exact_match: Optional[bool] = None,
+    page_key: Optional[str] = None,
+    page_limit: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Call GET /search/conversations."""
+    return api_request(
+        self,
+        'GET',
+        '/search/conversations',
+        params={'query': query, 'exactMatch': exact_match, 'pageKey': page_key, 'pageLimit': page_limit},
+    )

@@ -172,3 +172,11 @@ async def create_agent(
     return client.create_agent(display_name=display_name, email=email)
 ```
 
+
+## Prerequisites and coverage
+
+When adding a tool, add its discovery and inspection prerequisites to `TOOL_PREREQUISITES` in `tools/workflows.py`. The server appends this guidance to the tool description before MCP registration. Use actual registered tool names, identify where IDs come from, and explain when existing context avoids another discovery call. No prerequisite mutation is implicitly authorized.
+
+Require explicit confirmation for mutations. For messages, show final content, recipients, destination and attachments before separate send approval; for webhooks, confirm destination and future event delivery settings. Mark read-only and mutation annotations accurately, including read-only POST analytics/search operations.
+
+Keep `tests/fixtures/dixa_v1_operations.json` synchronized with the official specification, and update the mapping in `docs/ENDPOINT_COVERAGE.md`. The coverage test checks every published HTTP operation and every registered tool's prerequisite guidance. Add protocol/HTTP tests for request shape, optional values, errors, and pagination rather than checking only wrapper delegation.

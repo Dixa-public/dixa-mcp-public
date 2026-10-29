@@ -37,8 +37,12 @@ mcp = FastMCP(
         - Settings: Manage contact endpoints, business hours schedules and status
         - Conversations: Manage conversations (get, create, add notes, tag, claim, close, anonymize, search, etc.)
         - Custom Attributes: Manage custom attributes for conversations and end users
-        - Knowledge: Browse collections and catalogs; create categories; manage article translations, publication, placement, and attachments
-        - Analytics: Get aggregated analytics data (metrics, filter values) - requires discovering available metrics first
+        - Knowledge: Browse collections and catalogs; create collections and categories; manage article translations, publication, placement, and attachments
+        - Analytics: Discover metrics, filters and records; fetch summaries and bounded record pages
+        - AI Agents: List Mim agents and external chatbot integrations
+        - Webhooks: Manage subscriptions and inspect delivery status/logs
+        - Templates: List templates and remove unused templates
+        - Anonymization: Retrieve request status; deprecated compatibility operations are explicitly marked
         
         Important Notes:
         - All modification endpoints (create, update, patch, delete) require explicit user confirmation before execution
@@ -88,15 +92,26 @@ mcp = FastMCP(
            - To update custom attributes: First use `list_custom_attributes` to get the list of custom attribute definitions and their IDs. The custom_attributes parameter requires a dictionary mapping custom attribute IDs (UUIDs) to values. Then use `update_conversation_custom_attributes` or `update_end_user_custom_attributes`.
         
         8. Analytics Operations (MANDATORY WORKFLOW):
-           - Use aggregated data for all analytics queries. Aggregated data provides summary statistics (counts, percentages, averages) that answer most analytics questions.
+           - Start with aggregated data for summary questions. Fetch individual records only when the task needs row-level evidence.
            - Step 1: Call `prepare_analytics_metric_query` without metric_id to discover available metrics.
            - Step 2: Call `prepare_analytics_metric_query` with a specific metric_id to get all information needed (filters, aggregations, filter values) in one call.
            - Step 3: Use `fetch_aggregated_data` to fetch the aggregated metric data with your desired filters and aggregations.
            - Understanding Aggregation Results: For nested/pre-aggregated metrics (e.g., "conversation_assignments_per_agent"), data is first grouped (e.g., by agent) then aggregated. "Count" refers to the number of groups/entries matching filters, NOT the total count of underlying items. "Sum" refers to the total sum across all groups. Example: Count=22 and Sum=1171 for "conversation_assignments_per_agent" means 22 agents have assignments (Count = number of agent groups) and 1171 total assignments across those agents (Sum = total assignments). To get per-agent details, you would need separate calls filtering by individual agent_id for each agent.
            - Important: Analytics endpoints require a discovery workflow. Always start by calling the prepare tool without IDs to find available metrics, then call it again with specific IDs to get all information, and finally query the data.
-           - Note: Unaggregated data tools are currently disabled. Use aggregated data only.
+           - Records: If summaries are insufficient, call `prepare_analytics_record_query` without an ID, then with the selected record ID. Use `fetch_analytics_filter_values` for required filter values. `fetch_unaggregated_data` returns one page (default 50, maximum 100); retain the same payload and pass cursors unchanged for further pages only when needed. Never claim a page is a complete dataset.
         
-        General Pattern: When a tool requires an ID parameter (tag_id, conversation_id, agent_id, team_id, queue_id, etc.), you must first use the corresponding "list" or "fetch" tool to find that ID. Always check if the entity exists before trying to use it, or add it first if it doesn't exist.
+        Prerequisite Tool Calls (MANDATORY):
+        - Every tool description includes its prerequisite discovery/inspection workflow. Follow it before the final operation; do not guess IDs, event names, analytics attributes, or customer ratings.
+        - Resolve IDs through discovery unless a verified ID is already available in the current context. Before changing an existing resource, inspect its current state.
+        - Messaging: search/fetch the conversation first; verify requester, channel and agent, and resolve cc/bcc user IDs. Show the exact final message, recipients, destination, links and attachments and wait for separate explicit approval before sending. A request to send or draft is not itself final-send approval.
+        - Ratings: fetch the conversation and requester/agent first, create an approved rating offer if none exists, then submit only the actual customer rating using that offer's returned ID.
+        - Webhooks: list subscriptions, fetch the selected one, then edit/delete or inspect deliveries. Creating or enabling a subscription authorizes future external deliveries and needs explicit approval of destination, events and filters. Never copy redacted credentials into update payloads.
+        - Templates: list templates before deletion; confirm the template is unused in flows/automations. Anonymization: preserve the returned request ID and use fetch_anonymization_status for progress instead of resubmitting.
+        - Business hours: list schedules first; fetch definition/upcoming using a returned schedule ID. AI agent discovery uses list_ai_agents.
+        - Bulk mutations: discover and fetch each affected resource before confirming final changes. Inspect every item for partial failures. Agent deletion downgrades the user to an end user.
+        - Deprecated tools are compatibility-only. Prefer search_conversations, list_conversation_ratings, and resource-specific anonymization tools.
+
+        General Pattern: When an ID is not already verified in the current context, use the corresponding list/fetch tool to resolve it. Inspect current state before mutations. If a prerequisite resource is missing, prepare its creation and obtain separate confirmation rather than creating it automatically.
     """
 )
 
@@ -322,12 +337,81 @@ if hasattr(type(mcp), 'streamable_http_app'):
 print("[MonkeyPatch] Set up property interceptors for app middleware injection", file=sys.stderr, flush=True)
 
 # Import and register tools from the tools package
-from tools.organization import fetch_organization_details
-from tools.agents import fetch_agent_by_id, list_agents, list_agents_presence, list_agent_teams, add_agent, modify_agent_partial, update_agent_full, set_agent_working_channel
-from tools.settings import list_contact_endpoints, fetch_contact_endpoint_by_id, check_business_hours_status, list_business_hours_schedules
-from tools.conversations import fetch_conversation_by_id, list_conversation_flows, list_conversation_activity_log, list_conversation_notes, list_linked_conversations, list_conversation_messages, list_organization_activity_log, list_conversation_ratings, search_conversations, start_conversation, import_conversations, add_conversation_note, add_conversation_notes_bulk, anonymize_conversation, anonymize_conversation_message, tag_conversation_bulk, assign_conversation_to_agent, close_conversation, transfer_conversation_to_queue, link_conversation_to_parent, set_conversation_followup_status, reopen_conversation, tag_conversation, remove_tag_from_conversation
-from tools.custom_attributes import fetch_custom_attribute_by_id, list_custom_attributes, update_conversation_custom_attributes, update_end_user_custom_attributes
-from tools.users import list_end_users, fetch_end_user_by_id, add_end_user, add_end_users_bulk, modify_end_user_partial, modify_end_users_bulk, update_end_user_full, update_end_users_bulk, list_end_user_conversations, anonymize_end_user
+from tools.organization import (
+    fetch_organization_details,
+)
+from tools.agents import (
+    fetch_agent_by_id,
+    list_agents,
+    list_agents_presence,
+    list_agent_teams,
+    add_agent,
+    modify_agent_partial,
+    update_agent_full,
+    set_agent_working_channel,
+    add_agents_bulk,
+    update_agents_bulk,
+    modify_agents_bulk,
+    fetch_agent_presence,
+    remove_agent,
+)
+from tools.settings import (
+    list_contact_endpoints,
+    fetch_contact_endpoint_by_id,
+    check_business_hours_status,
+    list_business_hours_schedules,
+    fetch_business_hours_definition,
+    fetch_upcoming_business_hours,
+)
+from tools.conversations import (
+    fetch_conversation_by_id,
+    list_conversation_flows,
+    list_conversation_activity_log,
+    list_conversation_notes,
+    list_linked_conversations,
+    list_conversation_messages,
+    list_organization_activity_log,
+    list_conversation_ratings,
+    search_conversations,
+    start_conversation,
+    import_conversations,
+    add_conversation_note,
+    add_conversation_notes_bulk,
+    anonymize_conversation,
+    anonymize_conversation_message,
+    tag_conversation_bulk,
+    assign_conversation_to_agent,
+    close_conversation,
+    transfer_conversation_to_queue,
+    link_conversation_to_parent,
+    set_conversation_followup_status,
+    reopen_conversation,
+    tag_conversation,
+    remove_tag_from_conversation,
+    add_conversation_message,
+    create_conversation_rating_offer,
+    submit_conversation_rating_result,
+    list_conversation_ratings_legacy,
+    search_conversations_legacy,
+)
+from tools.custom_attributes import (
+    fetch_custom_attribute_by_id,
+    list_custom_attributes,
+    update_conversation_custom_attributes,
+    update_end_user_custom_attributes,
+)
+from tools.users import (
+    list_end_users,
+    fetch_end_user_by_id,
+    add_end_user,
+    add_end_users_bulk,
+    modify_end_user_partial,
+    modify_end_users_bulk,
+    update_end_user_full,
+    update_end_users_bulk,
+    list_end_user_conversations,
+    anonymize_end_user,
+)
 from tools.knowledge import (
     list_knowledge_collections,
     fetch_knowledge_collection_by_id,
@@ -337,6 +421,7 @@ from tools.knowledge import (
     fetch_knowledge_article_by_id,
     fetch_knowledge_article_translations,
     add_knowledge_category,
+    add_knowledge_collection,
     add_knowledge_article,
     modify_knowledge_article,
     remove_knowledge_article,
@@ -350,12 +435,67 @@ from tools.knowledge import (
     remove_knowledge_article_parent,
     upload_knowledge_article_attachments,
 )
-from tools.queues import list_queues, fetch_queue_by_id, check_queue_availability, check_conversation_queue_position, list_queue_agents, add_queue, assign_agents_to_queue, remove_agents_from_queue
-from tools.tags import list_tags, fetch_tag_by_id, list_conversation_tags, add_tag, activate_tag, deactivate_tag, remove_tag
-from tools.teams import list_teams, fetch_team_by_id, list_team_agents, list_team_presence, add_team, add_agents_to_team, remove_agents_from_team, remove_team
-from tools.analytics import fetch_aggregated_data, prepare_analytics_metric_query
-# NOTE: Unaggregated data tools are commented out to prevent conversation length errors
-# from tools.analytics import fetch_unaggregated_data, prepare_analytics_record_query
+from tools.queues import (
+    list_queues,
+    fetch_queue_by_id,
+    check_queue_availability,
+    check_conversation_queue_position,
+    list_queue_agents,
+    add_queue,
+    assign_agents_to_queue,
+    remove_agents_from_queue,
+)
+from tools.tags import (
+    list_tags,
+    fetch_tag_by_id,
+    list_conversation_tags,
+    add_tag,
+    activate_tag,
+    deactivate_tag,
+    remove_tag,
+)
+from tools.teams import (
+    list_teams,
+    fetch_team_by_id,
+    list_team_agents,
+    list_team_presence,
+    add_team,
+    add_agents_to_team,
+    remove_agents_from_team,
+    remove_team,
+)
+from tools.analytics import (
+    fetch_aggregated_data,
+    prepare_analytics_metric_query,
+    fetch_unaggregated_data,
+    prepare_analytics_record_query,
+    fetch_analytics_filter_values,
+)
+from tools.ai_agents import (
+    list_ai_agents,
+)
+from tools.anonymization import (
+    fetch_anonymization_status,
+    anonymize_entity_legacy,
+)
+from tools.templates import (
+    list_templates,
+    remove_template,
+)
+from tools.webhooks import (
+    list_webhook_subscriptions,
+    fetch_webhook_subscription,
+    add_webhook_subscription,
+    modify_webhook_subscription,
+    remove_webhook_subscription,
+    fetch_webhook_delivery_status,
+    fetch_webhook_event_logs,
+)
+from tools.workflows import (
+    apply_workflow_instructions,
+)
+
+apply_workflow_instructions(globals())
 
 # Register tools with FastMCP
 mcp.tool(fetch_organization_details)
@@ -579,9 +719,159 @@ mcp.tool(remove_agents_from_team)
 mcp.tool(remove_team)
 mcp.tool(prepare_analytics_metric_query)
 mcp.tool(fetch_aggregated_data)
-# NOTE: Unaggregated data tools are commented out to prevent conversation length errors
-# mcp.tool(prepare_analytics_record_query)
-# mcp.tool(fetch_unaggregated_data)
+mcp.tool(prepare_analytics_record_query, annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS)
+mcp.tool(fetch_unaggregated_data, annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS)
+mcp.tool(fetch_analytics_filter_values, annotations=_KNOWLEDGE_READ_ONLY_ANNOTATIONS)
+mcp.tool(
+    add_agents_bulk,
+    title='Add Agents Bulk',
+    tags={'agents', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=True),
+)
+mcp.tool(
+    update_agents_bulk,
+    title='Update Agents Bulk',
+    tags={'agents', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    modify_agents_bulk,
+    title='Modify Agents Bulk',
+    tags={'agents', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    fetch_agent_presence,
+    title='Fetch Agent Presence',
+    tags={'agents', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    remove_agent,
+    title='Remove Agent',
+    tags={'agents', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    list_ai_agents,
+    title='List Ai Agents',
+    tags={'read-only', 'ai_agents'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    add_conversation_message,
+    title='Add Conversation Message',
+    tags={'conversations', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=True),
+)
+mcp.tool(
+    create_conversation_rating_offer,
+    title='Create Conversation Rating Offer',
+    tags={'conversations', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=True),
+)
+mcp.tool(
+    submit_conversation_rating_result,
+    title='Submit Conversation Rating Result',
+    tags={'conversations', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=True),
+)
+mcp.tool(
+    list_conversation_ratings_legacy,
+    title='List Conversation Ratings Legacy',
+    tags={'conversations', 'deprecated', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    search_conversations_legacy,
+    title='Search Conversations Legacy',
+    tags={'conversations', 'deprecated', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    fetch_anonymization_status,
+    title='Fetch Anonymization Status',
+    tags={'anonymization', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    anonymize_entity_legacy,
+    title='Anonymize Entity Legacy',
+    tags={'anonymization', 'mutation', 'deprecated'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=False, openWorldHint=True),
+)
+mcp.tool(
+    list_templates,
+    title='List Templates',
+    tags={'templates', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    remove_template,
+    title='Remove Template',
+    tags={'templates', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    fetch_business_hours_definition,
+    title='Fetch Business Hours Definition',
+    tags={'settings', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    fetch_upcoming_business_hours,
+    title='Fetch Upcoming Business Hours',
+    tags={'settings', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    add_knowledge_collection,
+    title='Add Knowledge Collection',
+    tags={'knowledge', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=True),
+)
+mcp.tool(
+    list_webhook_subscriptions,
+    title='List Webhook Subscriptions',
+    tags={'webhooks', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    fetch_webhook_subscription,
+    title='Fetch Webhook Subscription',
+    tags={'webhooks', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    add_webhook_subscription,
+    title='Add Webhook Subscription',
+    tags={'webhooks', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=True),
+)
+mcp.tool(
+    modify_webhook_subscription,
+    title='Modify Webhook Subscription',
+    tags={'webhooks', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    remove_webhook_subscription,
+    title='Remove Webhook Subscription',
+    tags={'webhooks', 'mutation'},
+    annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    fetch_webhook_delivery_status,
+    title='Fetch Webhook Delivery Status',
+    tags={'webhooks', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
+mcp.tool(
+    fetch_webhook_event_logs,
+    title='Fetch Webhook Event Logs',
+    tags={'webhooks', 'read-only'},
+    annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True),
+)
 
 
 if __name__ == "__main__":

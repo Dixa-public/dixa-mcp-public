@@ -170,7 +170,7 @@ Authorization: Bearer YOUR_API_KEY_HERE
 
 ## What Can You Do?
 
-The Dixa MCP Server provides access to 95 different tools organized into categories:
+The Dixa MCP Server provides access to 124 different tools covering all 126 documented v1 operations, including three deprecated compatibility endpoints. Every tool describes its prerequisite discovery calls. See the [coverage and workflow guide](docs/ENDPOINT_COVERAGE.md) for the complete mapping. Tools are organized into categories:
 
 ### 📊 Analytics
 - Get aggregated metrics and statistics

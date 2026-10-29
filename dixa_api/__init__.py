@@ -19,6 +19,10 @@ from dixa_api import queues
 from dixa_api import tags
 from dixa_api import teams
 from dixa_api import analytics
+from dixa_api import ai_agents
+from dixa_api import anonymization
+from dixa_api import templates
+from dixa_api import webhooks
 
 # Attach all methods to DixaClient class
 # Organization
@@ -34,11 +38,20 @@ DixaClient.patch_agent = agents.patch_agent
 DixaClient.update_agent = agents.update_agent
 DixaClient.update_agent_working_channel = agents.update_agent_working_channel
 
+DixaClient.create_agents_bulk = agents.create_agents_bulk
+DixaClient.update_agents_bulk = agents.update_agents_bulk
+DixaClient.patch_agents_bulk = agents.patch_agents_bulk
+DixaClient.get_agent_presence = agents.get_agent_presence
+DixaClient.delete_agent = agents.delete_agent
+
 # Settings
 DixaClient.get_business_hours_status = settings.get_business_hours_status
 DixaClient.get_business_hours_schedules = settings.get_business_hours_schedules
 DixaClient.get_contact_endpoints = settings.get_contact_endpoints
 DixaClient.get_contact_endpoint = settings.get_contact_endpoint
+
+DixaClient.get_business_hours_definition = settings.get_business_hours_definition
+DixaClient.get_business_hours_upcoming = settings.get_business_hours_upcoming
 
 # Conversations
 DixaClient.create_conversation_note = conversations.create_conversation_note
@@ -66,6 +79,12 @@ DixaClient.post_search_conversations = conversations.post_search_conversations
 DixaClient.update_conversation_tag = conversations.update_conversation_tag
 DixaClient.delete_conversation_tag = conversations.delete_conversation_tag
 DixaClient.update_conversation_followup = conversations.update_conversation_followup
+
+DixaClient.create_conversation_message = conversations.create_conversation_message
+DixaClient.create_conversation_rating_offer = conversations.create_conversation_rating_offer
+DixaClient.create_conversation_rating_result = conversations.create_conversation_rating_result
+DixaClient.get_conversation_rating_legacy = conversations.get_conversation_rating_legacy
+DixaClient.get_search_conversations_legacy = conversations.get_search_conversations_legacy
 
 # Custom Attributes
 DixaClient.get_custom_attribute = custom_attributes.get_custom_attribute
@@ -106,6 +125,8 @@ DixaClient.move_knowledge_article = knowledge.move_knowledge_article
 DixaClient.delete_knowledge_article_parent = knowledge.delete_knowledge_article_parent
 DixaClient.upload_knowledge_article_attachments = knowledge.upload_knowledge_article_attachments
 
+DixaClient.create_knowledge_collection = knowledge.create_knowledge_collection
+
 # Queues
 DixaClient.get_queues = queues.get_queues
 DixaClient.get_queue = queues.get_queue
@@ -143,5 +164,25 @@ DixaClient.post_analytics_metric_data = analytics.post_analytics_metric_data
 DixaClient.get_analytics_records_catalogue = analytics.get_analytics_records_catalogue
 DixaClient.get_analytics_record_description = analytics.get_analytics_record_description
 DixaClient.post_analytics_metric_records_data = analytics.post_analytics_metric_records_data
+
+# Ai Agents
+DixaClient.get_ai_agents = ai_agents.get_ai_agents
+
+# Anonymization
+DixaClient.get_anonymization_status = anonymization.get_anonymization_status
+DixaClient.create_anonymization_legacy = anonymization.create_anonymization_legacy
+
+# Templates
+DixaClient.get_templates = templates.get_templates
+DixaClient.delete_template = templates.delete_template
+
+# Webhooks
+DixaClient.get_webhooks = webhooks.get_webhooks
+DixaClient.get_webhook = webhooks.get_webhook
+DixaClient.create_webhook = webhooks.create_webhook
+DixaClient.patch_webhook = webhooks.patch_webhook
+DixaClient.delete_webhook = webhooks.delete_webhook
+DixaClient.get_webhook_delivery_status = webhooks.get_webhook_delivery_status
+DixaClient.get_webhook_event_logs = webhooks.get_webhook_event_logs
 
 __all__ = ['DixaClient']

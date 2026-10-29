@@ -1,28 +1,11 @@
-"""
-Tool for getting the position of a conversation in its queue from the Dixa API.
-"""
-
-from typing import Dict, Any
+"""Get a conversation's approximate position in its current queue."""
+from typing import Any, Dict
 from tools.base import get_dixa_client
 
+async def check_conversation_queue_position(conversation_id: int) -> Dict[str, Any]:
+    """Get the current queue position; no queue ID is required.
 
-async def check_conversation_queue_position(
-    queue_id: str,
-    conversation_id: str
-) -> Dict[str, Any]:
+    First search_conversations or fetch_conversation_by_id to identify
+    the conversation and verify its queued state.
     """
-    Get the position of a conversation in its current queue.
-    
-    Args:
-        queue_id: The ID of the queue (required).
-        conversation_id: The ID of the conversation (required).
-    
-    Returns:
-        Dictionary containing the conversation's position in the queue.
-    """
-    client = get_dixa_client()
-    return client.get_queue_conversation_position(
-        queue_id=queue_id,
-        conversation_id=conversation_id
-    )
-
+    return get_dixa_client().get_queue_conversation_position(conversation_id=conversation_id)

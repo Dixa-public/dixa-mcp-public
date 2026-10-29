@@ -38,6 +38,7 @@ EXPECTED_TOOL_NAMES = [
     "move_knowledge_article",
     "remove_knowledge_article_parent",
     "upload_knowledge_article_attachments",
+    "add_knowledge_collection",
 ]
 
 EXPECTED_CLIENT_METHOD_NAMES = {
@@ -48,6 +49,7 @@ EXPECTED_CLIENT_METHOD_NAMES = {
     "get_knowledge_category_translations",
     "get_knowledge_article",
     "get_knowledge_article_translations",
+    "create_knowledge_collection",
     "create_knowledge_category",
     "create_knowledge_article",
     "patch_knowledge_article",
@@ -599,7 +601,7 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
             client.calls,
         )
 
-    async def test_all_twenty_wrappers_delegate_with_api_shaped_arguments(self):
+    async def test_all_twenty_one_wrappers_delegate_with_api_shaped_arguments(self):
         translations = [
             {
                 "languageId": "en",
@@ -610,6 +612,12 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
         tag_updates = {"add": ["tag-1"], "remove": []}
         encoded_content = base64.b64encode(b"image bytes").decode("ascii")
         cases = [
+            (
+                "add_knowledge_collection",
+                {"title": "Support", "description": "", "internal_kb_enabled": False},
+                "create_knowledge_collection",
+                {"title": "Support", "description": "", "internal_kb_enabled": False},
+            ),
             (
                 "list_knowledge_collections",
                 {"page_key": "opaque==", "page_limit": 50},
@@ -774,7 +782,7 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
             ),
         ]
 
-        self.assertEqual(20, len(cases))
+        self.assertEqual(21, len(cases))
         for case in cases:
             with self.subTest(tool=case[0]):
                 await self._assert_delegates(*case)
@@ -818,14 +826,14 @@ class KnowledgeWrapperTests(unittest.IsolatedAsyncioTestCase):
 
 
 class KnowledgeSurfaceTests(unittest.TestCase):
-    def test_package_exports_exactly_the_twenty_official_tools(self):
+    def test_package_exports_exactly_the_twenty_one_official_tools(self):
         self.assertEqual(EXPECTED_TOOL_NAMES, knowledge_tools.__all__)
-        self.assertEqual(20, len(set(knowledge_tools.__all__)))
+        self.assertEqual(21, len(set(knowledge_tools.__all__)))
         for name in EXPECTED_TOOL_NAMES:
             self.assertTrue(callable(getattr(knowledge_tools, name)))
         self.assertTrue(LEGACY_TOOL_NAMES.isdisjoint(knowledge_tools.__all__))
 
-    def test_dixa_client_has_exactly_the_twenty_knowledge_bindings(self):
+    def test_dixa_client_has_exactly_the_twenty_one_knowledge_bindings(self):
         actual = {
             name
             for name in vars(DixaClient)
@@ -1088,6 +1096,7 @@ class KnowledgeProtocolMetadataTests(unittest.IsolatedAsyncioTestCase):
 
         read_only_names = set(EXPECTED_TOOL_NAMES[:7])
         additive_names = {
+            "add_knowledge_collection",
             "add_knowledge_category",
             "add_knowledge_article",
             "upload_knowledge_article_attachments",

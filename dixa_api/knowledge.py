@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 from requests.exceptions import HTTPError, RequestException
+from dixa_api.http import api_request
 
 
 MultipartFile = Tuple[str, Tuple[str, bytes, str]]
@@ -351,4 +352,19 @@ def upload_knowledge_article_attachments(
         "POST",
         "/knowledge/articles/attachments",
         files=multipart_files,
+    )
+
+
+def create_knowledge_collection(
+    self,
+    title: str,
+    description: Optional[str] = None,
+    internal_kb_enabled: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """Call POST /knowledge/collections."""
+    return api_request(
+        self,
+        'POST',
+        '/knowledge/collections',
+        payload={key: value for key, value in {'title': title, 'description': description, 'internalKbEnabled': internal_kb_enabled}.items() if value is not None},
     )

@@ -257,13 +257,19 @@ python server.py --api-key your-dixa-api-key-here
 
 ## Available Tools
 
-The Dixa MCP server provides comprehensive access to the Dixa API through organized tool categories. All tools automatically extract the API key from the Authorization header or configuration.
+The Dixa MCP server exposes all 126 documented v1 operations through 124 tools, including three clearly marked deprecated compatibility endpoints. See the [endpoint coverage and prerequisite workflows](docs/ENDPOINT_COVERAGE.md). All tools automatically extract the API key from the Authorization header or configuration.
 
 ### Organization Tools
 
 - **`fetch_organization_details`**: Retrieves organization information from the Dixa API.
 
 ### Agent Tools
+
+- **`add_agents_bulk`**: Create agents in bulk.
+- **`update_agents_bulk`**: Fully update agents in bulk.
+- **`modify_agents_bulk`**: Partially update agents in bulk.
+- **`fetch_agent_presence`**: Get one agent or administrator's presence.
+- **`remove_agent`**: Downgrade an agent or administrator to an end user.
 
 - **`fetch_agent_by_id`**: Get a specific agent/admin by ID.
 - **`list_agents`**: List all agents/admins in the organization.
@@ -289,9 +295,15 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 
 ### Conversation Tools
 
+- **`add_conversation_message`**: Add an inbound or outbound message to a conversation.
+- **`create_conversation_rating_offer`**: Create a rating offer for a conversation.
+- **`submit_conversation_rating_result`**: Submit a result for an existing rating offer.
+- **`list_conversation_ratings_legacy`**: Deprecated singular rating endpoint.
+- **`search_conversations_legacy`**: Deprecated text-search endpoint.
+
 - **`fetch_conversation_by_id`**: Get a specific conversation by ID.
 - **`search_conversations`**: Search conversations with filters (strategy, conditions, pagination).
-- **`list_conversation_flows`**: List conversation flows for a conversation.
+- **`list_conversation_flows`**: List organization-wide conversation flows, optionally filtered by channel; no conversation ID is required.
 - **`list_conversation_activity_log`**: List activity log entries for a conversation.
 - **`list_conversation_notes`**: List notes for a conversation.
 - **`list_linked_conversations`**: List conversations linked to a parent conversation.
@@ -347,13 +359,15 @@ The Dixa MCP server provides comprehensive access to the Dixa API through organi
 - **`list_queues`**: List all queues in the organization.
 - **`fetch_queue_by_id`**: Get a specific queue by ID.
 - **`check_queue_availability`**: Check if a queue is available.
-- **`check_conversation_queue_position`**: Check the position of a conversation in a queue.
+- **`check_conversation_queue_position`**: Check the approximate position in its current queue using only conversation_id; no queue_id is required.
 - **`list_queue_agents`**: List agents assigned to a queue.
 - **`add_queue`**: Create a new queue.
 - **`assign_agents_to_queue`**: Assign agents to a queue.
 - **`remove_agents_from_queue`**: Remove agents from a queue.
 
 ### Knowledge Base Tools
+
+- **`add_knowledge_collection`**: Create a knowledge collection.
 
 - **`list_knowledge_collections`**: List knowledge collections with optional pagination.
 - **`fetch_knowledge_collection_by_id`**: Get a knowledge collection by ID.
@@ -384,34 +398,69 @@ Dixa requires multilingual pre-release articles to publish all translations toge
 
 ### Settings Tools
 
+- **`fetch_business_hours_definition`**: Get a business-hours schedule definition, including timezone, recurring rules and exceptions.
+- **`fetch_upcoming_business_hours`**: Get resolved business hours for the next 1-90 days, default 7.
+
 - **`list_contact_endpoints`**: List all contact endpoints (channels).
 - **`fetch_contact_endpoint_by_id`**: Get a specific contact endpoint by ID.
 - **`check_business_hours_status`**: Check if business hours are currently active.
 - **`list_business_hours_schedules`**: List all business hours schedules.
+
+### AI Agents Tools
+
+- **`list_ai_agents`**: List native Mim agents and external chatbot integrations.
+
+### Webhooks Tools
+
+- **`list_webhook_subscriptions`**: List webhook subscriptions.
+- **`fetch_webhook_subscription`**: Get a webhook subscription.
+- **`add_webhook_subscription`**: Create a webhook subscription that can send future events to an external URL.
+- **`modify_webhook_subscription`**: Patch a webhook subscription.
+- **`remove_webhook_subscription`**: Delete a webhook subscription and stop its future event deliveries.
+- **`fetch_webhook_delivery_status`**: Get the latest delivery statuses for a webhook subscription.
+- **`fetch_webhook_event_logs`**: Get recent delivery logs for one subscribed event.
+
+### Templates Tools
+
+- **`list_templates`**: List one page of templates, optionally filtered by template_type.
+- **`remove_template`**: Permanently delete a template.
+
+### Anonymization Tools
+
+- **`fetch_anonymization_status`**: Get the status of an anonymization request.
+- **`anonymize_entity_legacy`**: Deprecated anonymization endpoint.
 
 ### Analytics Tools
 
 - **`prepare_analytics_metric_query`**: Prepare analytics metric queries by discovering available metrics, filters, aggregations, and filter values. Use this before calling `fetch_aggregated_data`.
 - **`fetch_aggregated_data`**: Fetch aggregated (summary) analytics data for metrics. Provides summary statistics like counts, percentages, averages. **Always start with this tool** before considering unaggregated data.
 
-**Note**: Unaggregated data tools (`prepare_analytics_record_query` and `fetch_unaggregated_data`) are currently disabled to prevent conversation length errors. Use aggregated data tools only.
+- **`prepare_analytics_record_query`**: Discover record IDs, then fetch a selected record's fields and filter metadata.
+- **`fetch_analytics_filter_values`**: Fetch one page of allowed values for a discovered filter attribute.
+- **`fetch_unaggregated_data`**: Fetch one page of individual records after the discovery steps. Defaults to 50 rows, maximum 100 per request. Pass cursors unchanged and retain the same query; request additional pages only when needed.
+
+Every tool description includes prerequisite calls. Mutation prerequisites do not bypass confirmation: show the final content/change and destination, then obtain explicit approval. Webhook responses redact credentials and custom-header values.
 
 ### Tool Categories Summary
 
 | Category | Read-Only Tools | Modification Tools | Total |
-|----------|----------------|-------------------|-------|
+|---|---:|---:|---:|
 | Organization | 1 | 0 | 1 |
-| Agents | 4 | 4 | 8 |
-| End Users | 3 | 7 | 10 |
-| Conversations | 9 | 15 | 24 |
+| Settings | 6 | 0 | 6 |
+| Agents | 5 | 8 | 13 |
 | Custom Attributes | 2 | 2 | 4 |
 | Tags | 3 | 4 | 7 |
+| Knowledge Base | 7 | 14 | 21 |
+| Conversations | 11 | 18 | 29 |
+| End Users | 3 | 7 | 10 |
 | Teams | 4 | 4 | 8 |
 | Queues | 5 | 3 | 8 |
-| Knowledge Base | 7 | 12 | 19 |
-| Settings | 4 | 0 | 4 |
-| Analytics | 2 | 0 | 2 |
-| **Total** | **44** | **51** | **95** |
+| Templates | 1 | 1 | 2 |
+| Anonymization | 1 | 1 | 2 |
+| Webhooks | 4 | 3 | 7 |
+| AI Agents | 1 | 0 | 1 |
+| Analytics | 5 | 0 | 5 |
+| **Total** | **59** | **65** | **124** |
 
 ### Important Notes
 
