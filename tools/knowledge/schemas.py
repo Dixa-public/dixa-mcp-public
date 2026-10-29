@@ -37,6 +37,19 @@ def _decode_json_object(value: Any) -> Any:
     return decoded
 
 
+class KnowledgeCategoryTranslationInput(TypedDict):
+    """A translated category title, without article content."""
+
+    languageId: Annotated[
+        str,
+        Field(description="ISO language code accepted by Dixa, such as en or da."),
+    ]
+    title: Annotated[
+        str,
+        Field(description="Translated category title for this language."),
+    ]
+
+
 class KnowledgeTranslationRequired(TypedDict):
     """Required fields for a knowledge article translation."""
 
@@ -89,6 +102,10 @@ class KnowledgeAttachmentInput(TypedDict):
     ]
 
 
+KnowledgeCategoryTranslationList = Annotated[
+    List[KnowledgeCategoryTranslationInput],
+    BeforeValidator(_decode_json_array),
+]
 KnowledgeTranslationList = Annotated[
     List[KnowledgeTranslationInput],
     BeforeValidator(_decode_json_array),
@@ -108,6 +125,8 @@ KnowledgeAttachmentList = Annotated[
 
 
 __all__ = [
+    "KnowledgeCategoryTranslationInput",
+    "KnowledgeCategoryTranslationList",
     "KnowledgeAttachmentInput",
     "KnowledgeAttachmentList",
     "KnowledgeTagIdList",
