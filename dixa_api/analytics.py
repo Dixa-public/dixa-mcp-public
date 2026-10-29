@@ -4,7 +4,8 @@ Analytics-related API methods for DixaClient.
 
 import requests
 from typing import Dict, Any, Optional, List
-from requests.exceptions import RequestException, HTTPError
+from requests.exceptions import RequestException
+from dixa_api.safety import decode_response, raise_api_error
 
 
 def get_analytics_filter_values(
@@ -40,17 +41,9 @@ def get_analytics_filter_values(
     try:
         response = requests.get(url, headers=self.headers, params=params if params else None)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_analytics_metrics_catalogue(
@@ -82,17 +75,9 @@ def get_analytics_metrics_catalogue(
     try:
         response = requests.get(url, headers=self.headers, params=params if params else None)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_analytics_metric_description(self, metric_id: str) -> Dict[str, Any]:
@@ -113,17 +98,9 @@ def get_analytics_metric_description(self, metric_id: str) -> Dict[str, Any]:
     try:
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def post_analytics_metric_data(self, request: Dict[str, Any]) -> Dict[str, Any]:
@@ -151,17 +128,9 @@ def post_analytics_metric_data(self, request: Dict[str, Any]) -> Dict[str, Any]:
     try:
         response = requests.post(url, json=request, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_analytics_records_catalogue(
@@ -193,17 +162,9 @@ def get_analytics_records_catalogue(
     try:
         response = requests.get(url, headers=self.headers, params=params if params else None)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_analytics_record_description(self, record_id: str) -> Dict[str, Any]:
@@ -224,17 +185,9 @@ def get_analytics_record_description(self, record_id: str) -> Dict[str, Any]:
     try:
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def post_analytics_metric_records_data(
@@ -279,15 +232,7 @@ def post_analytics_metric_records_data(
         # The pageKey is just a query parameter, but the same payload should be sent
         response = requests.post(url, json=request, headers=headers, params=params if params else None)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 

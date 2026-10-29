@@ -13,6 +13,7 @@ import requests
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
 from dixa_api import DixaClient
+from dixa_api.safety import ITEM_ERROR_MESSAGE
 
 
 AGENT = "00000000-0000-4000-8000-000000000001"
@@ -149,7 +150,10 @@ class MissingEndpointProtocolTests(unittest.IsolatedAsyncioTestCase):
     async def test_bulk_partial_failures_and_pagination_are_not_discarded(self):
         partial = {"data": [{"_type": "BulkActionSuccess", "data": {"id": AGENT}}, {"_type": "BulkActionFailure", "error": {"message": "Duplicate"}}]}
         result, _, _ = await self.invoke("agents.add_agents_bulk", {"agents": [{"displayName": "Test", "email": "test@example.com"}]}, partial, 201)
-        self.assertEqual(partial, result)
+        self.assertEqual(partial["data"][0], result["data"][0])
+        self.assertEqual("BulkActionFailure", result["data"][1]["_type"])
+        self.assertEqual({"message": ITEM_ERROR_MESSAGE}, result["data"][1]["error"])
+        self.assertEqual("Duplicate", partial["data"][1]["error"]["message"])
         paginated = {"data": [{"id": "row-1"}], "meta": {"nextPage": CURSOR}}
         stdout = io.StringIO()
         with redirect_stdout(stdout):

@@ -2,7 +2,6 @@
 Tool for preparing analytics metric queries by gathering all required information in one call.
 """
 
-import json
 from typing import Dict, Any, Optional
 from tools.base import get_dixa_client
 
@@ -70,7 +69,6 @@ async def prepare_analytics_metric_query(metric_id: Optional[str] = None, page_k
             page_key=page_key,
             page_limit=page_limit
         )
-        print(f"[prepare_analytics_metric_query] Response (listing all metrics):\n{json.dumps(result, indent=2)}")
         return result
     
     # Step 1: Get metric details
@@ -106,6 +104,5 @@ async def prepare_analytics_metric_query(metric_id: Optional[str] = None, page_k
         "related_record_ids": metric_details.get("data", {}).get("relatedRecordIds", [])
     }
     
-    print(f"[prepare_analytics_metric_query] Response (metric_id={metric_id}):\n{json.dumps(result, indent=2)}")
     return result
 

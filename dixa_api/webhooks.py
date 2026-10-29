@@ -1,6 +1,7 @@
 """Webhook subscription API methods with credential-safe responses."""
 from typing import Any, Dict
 from dixa_api.http import api_request
+from dixa_api.safety import redact_webhook_diagnostics
 
 
 def redact_webhook_credentials(value):
@@ -103,11 +104,12 @@ def get_webhook_delivery_status(
     webhook_id: str,
 ) -> Dict[str, Any]:
     """Call GET /webhooks/{webhook_id}/delivery-status."""
-    return api_request(
+    result = api_request(
         self,
         'GET',
         f'/webhooks/{webhook_id}/delivery-status',
     )
+    return redact_webhook_diagnostics(redact_webhook_credentials(result))
 
 
 def get_webhook_event_logs(
@@ -116,8 +118,9 @@ def get_webhook_event_logs(
     event: str,
 ) -> Dict[str, Any]:
     """Call GET /webhooks/{webhook_id}/delivery-status/logs/{event}."""
-    return api_request(
+    result = api_request(
         self,
         'GET',
         f'/webhooks/{webhook_id}/delivery-status/logs/{event}',
     )
+    return redact_webhook_diagnostics(redact_webhook_credentials(result))

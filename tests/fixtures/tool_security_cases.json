@@ -1,0 +1,1088 @@
+{
+  "description": "Synthetic valid inputs for all 124 tools and both analytics preparation branches. No live data or credentials.",
+  "cases": [
+    {
+      "tool": "activate_tag",
+      "module": "tools.tags.activate_tag",
+      "arguments": {
+        "tag_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/tags/{tagId}/activate"
+    },
+    {
+      "tool": "add_agent",
+      "module": "tools.agents.add_agent",
+      "arguments": {
+        "display_name": "synthetic-test-value",
+        "email": "synthetic@example.invalid"
+      },
+      "operation": "POST /v1/agents"
+    },
+    {
+      "tool": "add_agents_bulk",
+      "module": "tools.agents.add_agents_bulk",
+      "arguments": {
+        "agents": [
+          {
+            "displayName": "synthetic-test-value",
+            "email": "synthetic@example.invalid"
+          }
+        ]
+      },
+      "operation": "POST /v1/agents/bulk"
+    },
+    {
+      "tool": "add_agents_to_team",
+      "module": "tools.teams.add_agents_to_team",
+      "arguments": {
+        "team_id": "00000000-0000-4000-8000-000000000001",
+        "agent_ids": [
+          "synthetic-test-value"
+        ]
+      },
+      "operation": "PATCH /v1/teams/{teamId}/agents"
+    },
+    {
+      "tool": "add_conversation_message",
+      "module": "tools.conversations.add_conversation_message",
+      "arguments": {
+        "conversation_id": 1,
+        "message": {
+          "content": {
+            "value": "synthetic-test-value",
+            "_type": "Html"
+          },
+          "_type": "Inbound"
+        }
+      },
+      "operation": "POST /v1/conversations/{conversationId}/messages"
+    },
+    {
+      "tool": "add_conversation_note",
+      "module": "tools.conversations.add_conversation_note",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "message": "synthetic-test-value"
+      },
+      "operation": "POST /v1/conversations/{conversationId}/notes"
+    },
+    {
+      "tool": "add_conversation_notes_bulk",
+      "module": "tools.conversations.add_conversation_notes_bulk",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "notes": [
+          {}
+        ]
+      },
+      "operation": "POST /v1/conversations/{conversationId}/notes/bulk"
+    },
+    {
+      "tool": "add_end_user",
+      "module": "tools.users.add_end_user",
+      "arguments": {
+        "display_name": "synthetic-test-value"
+      },
+      "operation": "POST /v1/endusers"
+    },
+    {
+      "tool": "add_end_users_bulk",
+      "module": "tools.users.add_end_users_bulk",
+      "arguments": {
+        "end_users": [
+          {}
+        ]
+      },
+      "operation": "POST /v1/endusers/bulk"
+    },
+    {
+      "tool": "add_knowledge_article",
+      "module": "tools.knowledge.add_knowledge_article",
+      "arguments": {},
+      "operation": "POST /v1/knowledge/articles"
+    },
+    {
+      "tool": "add_knowledge_category",
+      "module": "tools.knowledge.add_knowledge_category",
+      "arguments": {
+        "parent_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "POST /v1/knowledge/categories"
+    },
+    {
+      "tool": "add_knowledge_collection",
+      "module": "tools.knowledge.add_knowledge_collection",
+      "arguments": {
+        "title": "synthetic-test-value"
+      },
+      "operation": "POST /v1/knowledge/collections"
+    },
+    {
+      "tool": "add_queue",
+      "module": "tools.queues.add_queue",
+      "arguments": {
+        "name": "synthetic-test-value"
+      },
+      "operation": "POST /v1/queues"
+    },
+    {
+      "tool": "add_tag",
+      "module": "tools.tags.add_tag",
+      "arguments": {
+        "name": "synthetic-test-value"
+      },
+      "operation": "POST /v1/tags"
+    },
+    {
+      "tool": "add_team",
+      "module": "tools.teams.add_team",
+      "arguments": {
+        "name": "synthetic-test-value"
+      },
+      "operation": "POST /v1/teams"
+    },
+    {
+      "tool": "add_webhook_subscription",
+      "module": "tools.webhooks.add_webhook_subscription",
+      "arguments": {
+        "subscription": {
+          "name": "synthetic-test-value",
+          "url": "https://example.invalid/synthetic",
+          "authorization": {
+            "username": "synthetic-test-value",
+            "password": "synthetic-test-value",
+            "_type": "BasicAuth"
+          },
+          "customHeaders": {}
+        }
+      },
+      "operation": "POST /v1/webhooks"
+    },
+    {
+      "tool": "anonymize_conversation",
+      "module": "tools.conversations.anonymize_conversation",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/conversations/{conversationId}/anonymize"
+    },
+    {
+      "tool": "anonymize_conversation_message",
+      "module": "tools.conversations.anonymize_conversation_message",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "message_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/conversations/{conversationId}/messages/{messageId}/anonymize"
+    },
+    {
+      "tool": "anonymize_end_user",
+      "module": "tools.users.anonymize_end_user",
+      "arguments": {
+        "user_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/endusers/{userId}/anonymize"
+    },
+    {
+      "tool": "anonymize_entity_legacy",
+      "module": "tools.anonymization.anonymize_entity_legacy",
+      "arguments": {
+        "request": {
+          "entityId": "00000000-0000-4000-8000-000000000001"
+        }
+      },
+      "operation": "POST /v1/anonymization"
+    },
+    {
+      "tool": "assign_agents_to_queue",
+      "module": "tools.queues.assign_agents_to_queue",
+      "arguments": {
+        "queue_id": "00000000-0000-4000-8000-000000000001",
+        "agent_ids": [
+          "synthetic-test-value"
+        ]
+      },
+      "operation": "PATCH /v1/queues/{queueId}/members"
+    },
+    {
+      "tool": "assign_conversation_to_agent",
+      "module": "tools.conversations.assign_conversation_to_agent",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "agent_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PUT /v1/conversations/{conversationId}/claim"
+    },
+    {
+      "tool": "check_business_hours_status",
+      "module": "tools.settings.check_business_hours_status",
+      "arguments": {
+        "schedule_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/business-hours/schedules/{scheduleId}/status"
+    },
+    {
+      "tool": "check_conversation_queue_position",
+      "module": "tools.queues.check_conversation_queue_position",
+      "arguments": {
+        "conversation_id": 1
+      },
+      "operation": "GET /v1/queues/conversation-position/{csid}"
+    },
+    {
+      "tool": "check_queue_availability",
+      "module": "tools.queues.check_queue_availability",
+      "arguments": {
+        "queue_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/queues/{queueId}/availability"
+    },
+    {
+      "tool": "close_conversation",
+      "module": "tools.conversations.close_conversation",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PUT /v1/conversations/{conversationId}/close"
+    },
+    {
+      "tool": "create_conversation_rating_offer",
+      "module": "tools.conversations.create_conversation_rating_offer",
+      "arguments": {
+        "conversation_id": 1,
+        "offer": {
+          "userId": "00000000-0000-4000-8000-000000000001",
+          "agentId": "00000000-0000-4000-8000-000000000001",
+          "ratingType": "Csat"
+        }
+      },
+      "operation": "POST /v1/conversations/{conversationId}/ratings/offer"
+    },
+    {
+      "tool": "deactivate_tag",
+      "module": "tools.tags.deactivate_tag",
+      "arguments": {
+        "tag_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/tags/{tagId}/deactivate"
+    },
+    {
+      "tool": "fetch_agent_by_id",
+      "module": "tools.agents.fetch_agent_by_id",
+      "arguments": {
+        "agent_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/agents/{agentId}"
+    },
+    {
+      "tool": "fetch_agent_presence",
+      "module": "tools.agents.fetch_agent_presence",
+      "arguments": {
+        "agent_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/agents/{agentId}/presence"
+    },
+    {
+      "tool": "fetch_aggregated_data",
+      "module": "tools.analytics.fetch_aggregated_data",
+      "arguments": {
+        "metric_id": "agent_presence_duration",
+        "timezone": "UTC",
+        "period_filter": {
+          "_type": "Interval",
+          "start": "2026-10-28T00:00:00Z",
+          "end": "2026-10-29T00:00:00Z"
+        }
+      },
+      "operation": "POST /v1/analytics/metrics"
+    },
+    {
+      "tool": "fetch_analytics_filter_values",
+      "module": "tools.analytics.fetch_analytics_filter_values",
+      "arguments": {
+        "filter_attribute": "synthetic-test-value"
+      },
+      "operation": "GET /v1/analytics/filter/{filterAttribute}"
+    },
+    {
+      "tool": "fetch_anonymization_status",
+      "module": "tools.anonymization.fetch_anonymization_status",
+      "arguments": {
+        "request_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/anonymization/request/{requestId}"
+    },
+    {
+      "tool": "fetch_business_hours_definition",
+      "module": "tools.settings.fetch_business_hours_definition",
+      "arguments": {
+        "schedule_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/business-hours/schedules/{scheduleId}/definition"
+    },
+    {
+      "tool": "fetch_contact_endpoint_by_id",
+      "module": "tools.settings.fetch_contact_endpoint_by_id",
+      "arguments": {
+        "contact_endpoint_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/contact-endpoints/{contactEndpointId}"
+    },
+    {
+      "tool": "fetch_conversation_by_id",
+      "module": "tools.conversations.fetch_conversation_by_id",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/conversations/{conversationId}"
+    },
+    {
+      "tool": "fetch_custom_attribute_by_id",
+      "module": "tools.custom_attributes.fetch_custom_attribute_by_id",
+      "arguments": {
+        "custom_attribute_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/custom-attributes/{customAttributeId}"
+    },
+    {
+      "tool": "fetch_end_user_by_id",
+      "module": "tools.users.fetch_end_user_by_id",
+      "arguments": {
+        "user_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/endusers/{userId}"
+    },
+    {
+      "tool": "fetch_knowledge_article_by_id",
+      "module": "tools.knowledge.fetch_knowledge_article_by_id",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/knowledge/articles/{articleId}"
+    },
+    {
+      "tool": "fetch_knowledge_article_translations",
+      "module": "tools.knowledge.fetch_knowledge_article_translations",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/knowledge/articles/{articleId}/translations"
+    },
+    {
+      "tool": "fetch_knowledge_category_by_id",
+      "module": "tools.knowledge.fetch_knowledge_category_by_id",
+      "arguments": {
+        "category_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/knowledge/categories/{categoryId}"
+    },
+    {
+      "tool": "fetch_knowledge_category_translations",
+      "module": "tools.knowledge.fetch_knowledge_category_translations",
+      "arguments": {
+        "category_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/knowledge/categories/{categoryId}/translations"
+    },
+    {
+      "tool": "fetch_knowledge_collection_by_id",
+      "module": "tools.knowledge.fetch_knowledge_collection_by_id",
+      "arguments": {
+        "collection_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/knowledge/collections/{collectionId}"
+    },
+    {
+      "tool": "fetch_knowledge_collection_catalog",
+      "module": "tools.knowledge.fetch_knowledge_collection_catalog",
+      "arguments": {
+        "collection_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/knowledge/collections/{collectionId}/catalog"
+    },
+    {
+      "tool": "fetch_organization_details",
+      "module": "tools.organization.fetch_organization_details",
+      "arguments": {},
+      "operation": "GET /v1/organization"
+    },
+    {
+      "tool": "fetch_queue_by_id",
+      "module": "tools.queues.fetch_queue_by_id",
+      "arguments": {
+        "queue_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/queues/{queueId}"
+    },
+    {
+      "tool": "fetch_tag_by_id",
+      "module": "tools.tags.fetch_tag_by_id",
+      "arguments": {
+        "tag_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/tags/{tagId}"
+    },
+    {
+      "tool": "fetch_team_by_id",
+      "module": "tools.teams.fetch_team_by_id",
+      "arguments": {
+        "team_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/teams/{teamId}"
+    },
+    {
+      "tool": "fetch_unaggregated_data",
+      "module": "tools.analytics.fetch_unaggregated_data",
+      "arguments": {
+        "record_id": "agent_presence_duration",
+        "timezone": "UTC",
+        "period_filter": {
+          "_type": "Interval",
+          "start": "2026-10-28T00:00:00Z",
+          "end": "2026-10-29T00:00:00Z"
+        },
+        "page_limit": 1
+      },
+      "operation": "POST /v1/analytics/records"
+    },
+    {
+      "tool": "fetch_upcoming_business_hours",
+      "module": "tools.settings.fetch_upcoming_business_hours",
+      "arguments": {
+        "schedule_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/business-hours/schedules/{scheduleId}/upcoming"
+    },
+    {
+      "tool": "fetch_webhook_delivery_status",
+      "module": "tools.webhooks.fetch_webhook_delivery_status",
+      "arguments": {
+        "webhook_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/webhooks/{webhookSubscriptionId}/delivery-status"
+    },
+    {
+      "tool": "fetch_webhook_event_logs",
+      "module": "tools.webhooks.fetch_webhook_event_logs",
+      "arguments": {
+        "webhook_id": "00000000-0000-4000-8000-000000000001",
+        "event": "synthetic-test-value"
+      },
+      "operation": "GET /v1/webhooks/{webhookSubscriptionId}/delivery-status/logs/{event}"
+    },
+    {
+      "tool": "fetch_webhook_subscription",
+      "module": "tools.webhooks.fetch_webhook_subscription",
+      "arguments": {
+        "webhook_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/webhooks/{webhookSubscriptionId}"
+    },
+    {
+      "tool": "import_conversations",
+      "module": "tools.conversations.import_conversations",
+      "arguments": {
+        "conversations": [
+          {}
+        ]
+      },
+      "operation": "POST /v1/conversations/import"
+    },
+    {
+      "tool": "link_conversation_to_parent",
+      "module": "tools.conversations.link_conversation_to_parent",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "parent_conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PUT /v1/conversations/{conversationId}/link"
+    },
+    {
+      "tool": "list_agent_teams",
+      "module": "tools.agents.list_agent_teams",
+      "arguments": {
+        "agent_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/agents/{agentId}/teams"
+    },
+    {
+      "tool": "list_agents",
+      "module": "tools.agents.list_agents",
+      "arguments": {},
+      "operation": "GET /v1/agents"
+    },
+    {
+      "tool": "list_agents_presence",
+      "module": "tools.agents.list_agents_presence",
+      "arguments": {},
+      "operation": "GET /v1/agents/presence"
+    },
+    {
+      "tool": "list_ai_agents",
+      "module": "tools.ai_agents.list_ai_agents",
+      "arguments": {},
+      "operation": "GET /v1/ai-agents"
+    },
+    {
+      "tool": "list_business_hours_schedules",
+      "module": "tools.settings.list_business_hours_schedules",
+      "arguments": {},
+      "operation": "GET /v1/business-hours/schedules"
+    },
+    {
+      "tool": "list_contact_endpoints",
+      "module": "tools.settings.list_contact_endpoints",
+      "arguments": {},
+      "operation": "GET /v1/contact-endpoints"
+    },
+    {
+      "tool": "list_conversation_activity_log",
+      "module": "tools.conversations.list_conversation_activity_log",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/conversations/{conversationId}/activitylog"
+    },
+    {
+      "tool": "list_conversation_flows",
+      "module": "tools.conversations.list_conversation_flows",
+      "arguments": {},
+      "operation": "GET /v1/conversations/flows"
+    },
+    {
+      "tool": "list_conversation_messages",
+      "module": "tools.conversations.list_conversation_messages",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/conversations/{conversationId}/messages"
+    },
+    {
+      "tool": "list_conversation_notes",
+      "module": "tools.conversations.list_conversation_notes",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/conversations/{conversationId}/notes"
+    },
+    {
+      "tool": "list_conversation_ratings",
+      "module": "tools.conversations.list_conversation_ratings",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/conversations/{conversationId}/ratings"
+    },
+    {
+      "tool": "list_conversation_ratings_legacy",
+      "module": "tools.conversations.list_conversation_ratings_legacy",
+      "arguments": {
+        "conversation_id": 1
+      },
+      "operation": "GET /v1/conversations/{conversationId}/rating"
+    },
+    {
+      "tool": "list_conversation_tags",
+      "module": "tools.tags.list_conversation_tags",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/conversations/{conversationId}/tags"
+    },
+    {
+      "tool": "list_custom_attributes",
+      "module": "tools.custom_attributes.list_custom_attributes",
+      "arguments": {},
+      "operation": "GET /v1/custom-attributes"
+    },
+    {
+      "tool": "list_end_user_conversations",
+      "module": "tools.users.list_end_user_conversations",
+      "arguments": {
+        "user_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/endusers/{userId}/conversations"
+    },
+    {
+      "tool": "list_end_users",
+      "module": "tools.users.list_end_users",
+      "arguments": {},
+      "operation": "GET /v1/endusers"
+    },
+    {
+      "tool": "list_knowledge_collections",
+      "module": "tools.knowledge.list_knowledge_collections",
+      "arguments": {},
+      "operation": "GET /v1/knowledge/collections"
+    },
+    {
+      "tool": "list_linked_conversations",
+      "module": "tools.conversations.list_linked_conversations",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/conversations/{conversationId}/linked"
+    },
+    {
+      "tool": "list_organization_activity_log",
+      "module": "tools.conversations.list_organization_activity_log",
+      "arguments": {},
+      "operation": "GET /v1/conversations/activitylog"
+    },
+    {
+      "tool": "list_queue_agents",
+      "module": "tools.queues.list_queue_agents",
+      "arguments": {
+        "queue_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/queues/{queueId}/members"
+    },
+    {
+      "tool": "list_queues",
+      "module": "tools.queues.list_queues",
+      "arguments": {},
+      "operation": "GET /v1/queues"
+    },
+    {
+      "tool": "list_tags",
+      "module": "tools.tags.list_tags",
+      "arguments": {},
+      "operation": "GET /v1/tags"
+    },
+    {
+      "tool": "list_team_agents",
+      "module": "tools.teams.list_team_agents",
+      "arguments": {
+        "team_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/teams/{teamId}/agents"
+    },
+    {
+      "tool": "list_team_presence",
+      "module": "tools.teams.list_team_presence",
+      "arguments": {
+        "team_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "GET /v1/teams/{teamId}/presence"
+    },
+    {
+      "tool": "list_teams",
+      "module": "tools.teams.list_teams",
+      "arguments": {},
+      "operation": "GET /v1/teams"
+    },
+    {
+      "tool": "list_templates",
+      "module": "tools.templates.list_templates",
+      "arguments": {},
+      "operation": "GET /v1/templates"
+    },
+    {
+      "tool": "list_webhook_subscriptions",
+      "module": "tools.webhooks.list_webhook_subscriptions",
+      "arguments": {},
+      "operation": "GET /v1/webhooks"
+    },
+    {
+      "tool": "modify_agent_partial",
+      "module": "tools.agents.modify_agent_partial",
+      "arguments": {
+        "agent_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/agents/{agentId}"
+    },
+    {
+      "tool": "modify_agents_bulk",
+      "module": "tools.agents.modify_agents_bulk",
+      "arguments": {
+        "agents": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001"
+          }
+        ]
+      },
+      "operation": "PATCH /v1/agents"
+    },
+    {
+      "tool": "modify_end_user_partial",
+      "module": "tools.users.modify_end_user_partial",
+      "arguments": {
+        "user_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/endusers/{userId}"
+    },
+    {
+      "tool": "modify_end_users_bulk",
+      "module": "tools.users.modify_end_users_bulk",
+      "arguments": {
+        "end_users": [
+          {}
+        ]
+      },
+      "operation": "PATCH /v1/endusers"
+    },
+    {
+      "tool": "modify_knowledge_article",
+      "module": "tools.knowledge.modify_knowledge_article",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/knowledge/articles/{articleId}"
+    },
+    {
+      "tool": "modify_knowledge_article_translations",
+      "module": "tools.knowledge.modify_knowledge_article_translations",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/knowledge/articles/{articleId}/translations"
+    },
+    {
+      "tool": "modify_webhook_subscription",
+      "module": "tools.webhooks.modify_webhook_subscription",
+      "arguments": {
+        "webhook_id": "00000000-0000-4000-8000-000000000001",
+        "changes": {
+          "enabled": false
+        }
+      },
+      "operation": "PATCH /v1/webhooks/{webhookSubscriptionId}"
+    },
+    {
+      "tool": "move_knowledge_article",
+      "module": "tools.knowledge.move_knowledge_article",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001",
+        "parent_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PATCH /v1/knowledge/articles/{articleId}/parent/{parentId}"
+    },
+    {
+      "tool": "prepare_analytics_metric_query",
+      "module": "tools.analytics.prepare_analytics_metric_query",
+      "arguments": {},
+      "operation": "GET /v1/analytics/metrics"
+    },
+    {
+      "tool": "prepare_analytics_metric_query",
+      "module": "tools.analytics.prepare_analytics_metric_query",
+      "arguments": {
+        "metric_id": "agent_presence_duration"
+      },
+      "operation": "GET /v1/analytics/metrics/{metricId}"
+    },
+    {
+      "tool": "prepare_analytics_record_query",
+      "module": "tools.analytics.prepare_analytics_record_query",
+      "arguments": {},
+      "operation": "GET /v1/analytics/records"
+    },
+    {
+      "tool": "prepare_analytics_record_query",
+      "module": "tools.analytics.prepare_analytics_record_query",
+      "arguments": {
+        "record_id": "agent_presence_duration"
+      },
+      "operation": "GET /v1/analytics/records/{recordId}"
+    },
+    {
+      "tool": "publish_knowledge_article",
+      "module": "tools.knowledge.publish_knowledge_article",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "POST /v1/knowledge/articles/{articleId}/publish"
+    },
+    {
+      "tool": "publish_knowledge_article_translation",
+      "module": "tools.knowledge.publish_knowledge_article_translation",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001",
+        "language_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "POST /v1/knowledge/articles/{articleId}/translations/{languageId}/publish"
+    },
+    {
+      "tool": "remove_agent",
+      "module": "tools.agents.remove_agent",
+      "arguments": {
+        "agent_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "DELETE /v1/agents/{agentId}"
+    },
+    {
+      "tool": "remove_agents_from_queue",
+      "module": "tools.queues.remove_agents_from_queue",
+      "arguments": {
+        "queue_id": "00000000-0000-4000-8000-000000000001",
+        "agent_ids": [
+          "synthetic-test-value"
+        ]
+      },
+      "operation": "DELETE /v1/queues/{queueId}/members"
+    },
+    {
+      "tool": "remove_agents_from_team",
+      "module": "tools.teams.remove_agents_from_team",
+      "arguments": {
+        "team_id": "00000000-0000-4000-8000-000000000001",
+        "agent_ids": [
+          "synthetic-test-value"
+        ]
+      },
+      "operation": "DELETE /v1/teams/{teamId}/agents"
+    },
+    {
+      "tool": "remove_knowledge_article",
+      "module": "tools.knowledge.remove_knowledge_article",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "DELETE /v1/knowledge/articles/{articleId}"
+    },
+    {
+      "tool": "remove_knowledge_article_parent",
+      "module": "tools.knowledge.remove_knowledge_article_parent",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "DELETE /v1/knowledge/articles/{articleId}/parent"
+    },
+    {
+      "tool": "remove_knowledge_article_translation",
+      "module": "tools.knowledge.remove_knowledge_article_translation",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001",
+        "language_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "DELETE /v1/knowledge/articles/{articleId}/translations/{languageId}"
+    },
+    {
+      "tool": "remove_tag",
+      "module": "tools.tags.remove_tag",
+      "arguments": {
+        "tag_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "DELETE /v1/tags/{tagId}"
+    },
+    {
+      "tool": "remove_tag_from_conversation",
+      "module": "tools.conversations.remove_tag_from_conversation",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "tag_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "DELETE /v1/conversations/{conversationId}/tags/{tagId}"
+    },
+    {
+      "tool": "remove_team",
+      "module": "tools.teams.remove_team",
+      "arguments": {
+        "team_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "DELETE /v1/teams/{teamId}"
+    },
+    {
+      "tool": "remove_template",
+      "module": "tools.templates.remove_template",
+      "arguments": {
+        "template_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "DELETE /v1/templates/{templateId}"
+    },
+    {
+      "tool": "remove_webhook_subscription",
+      "module": "tools.webhooks.remove_webhook_subscription",
+      "arguments": {
+        "webhook_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "DELETE /v1/webhooks/{webhookSubscriptionId}"
+    },
+    {
+      "tool": "reopen_conversation",
+      "module": "tools.conversations.reopen_conversation",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PUT /v1/conversations/{conversationId}/reopen"
+    },
+    {
+      "tool": "search_conversations",
+      "module": "tools.conversations.search_conversations",
+      "arguments": {},
+      "operation": "POST /v1/search/conversations"
+    },
+    {
+      "tool": "search_conversations_legacy",
+      "module": "tools.conversations.search_conversations_legacy",
+      "arguments": {
+        "query": "synthetic-test-value"
+      },
+      "operation": "GET /v1/search/conversations"
+    },
+    {
+      "tool": "set_agent_working_channel",
+      "module": "tools.agents.set_agent_working_channel",
+      "arguments": {
+        "agent_id": "00000000-0000-4000-8000-000000000001",
+        "channel": "Email",
+        "working": false
+      },
+      "operation": "PUT /v1/agents/{agentId}/presence/working-channel"
+    },
+    {
+      "tool": "set_conversation_followup_status",
+      "module": "tools.conversations.set_conversation_followup_status",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "follow_up": false
+      },
+      "operation": "PUT /v1/conversations/{conversationId}/followup"
+    },
+    {
+      "tool": "start_conversation",
+      "module": "tools.conversations.start_conversation",
+      "arguments": {
+        "requester_id": "00000000-0000-4000-8000-000000000001",
+        "conversation_type": "Callback",
+        "message_content": "synthetic-test-value",
+        "message_type": "Inbound"
+      },
+      "operation": "POST /v1/conversations"
+    },
+    {
+      "tool": "submit_conversation_rating_result",
+      "module": "tools.conversations.submit_conversation_rating_result",
+      "arguments": {
+        "conversation_id": 1,
+        "rating_id": "00000000-0000-4000-8000-000000000001",
+        "result": {
+          "ratingResult": {
+            "value": 1,
+            "_type": "Csat"
+          }
+        }
+      },
+      "operation": "POST /v1/conversations/{conversationId}/ratings/{ratingId}/submit"
+    },
+    {
+      "tool": "tag_conversation",
+      "module": "tools.conversations.tag_conversation",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "tag_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PUT /v1/conversations/{conversationId}/tags/{tagId}"
+    },
+    {
+      "tool": "tag_conversation_bulk",
+      "module": "tools.conversations.tag_conversation_bulk",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "tag_names": [
+          "synthetic-test-value"
+        ]
+      },
+      "operation": "POST /v1/conversations/{conversationId}/tags/bulk"
+    },
+    {
+      "tool": "transfer_conversation_to_queue",
+      "module": "tools.conversations.transfer_conversation_to_queue",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "queue_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "PUT /v1/conversations/{conversationId}/transfer/queue"
+    },
+    {
+      "tool": "unpublish_knowledge_article",
+      "module": "tools.knowledge.unpublish_knowledge_article",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "POST /v1/knowledge/articles/{articleId}/unpublish"
+    },
+    {
+      "tool": "unpublish_knowledge_article_translation",
+      "module": "tools.knowledge.unpublish_knowledge_article_translation",
+      "arguments": {
+        "article_id": "00000000-0000-4000-8000-000000000001",
+        "language_id": "00000000-0000-4000-8000-000000000001"
+      },
+      "operation": "POST /v1/knowledge/articles/{articleId}/translations/{languageId}/unpublish"
+    },
+    {
+      "tool": "update_agent_full",
+      "module": "tools.agents.update_agent_full",
+      "arguments": {
+        "agent_id": "00000000-0000-4000-8000-000000000001",
+        "display_name": "synthetic-test-value"
+      },
+      "operation": "PUT /v1/agents/{agentId}"
+    },
+    {
+      "tool": "update_agents_bulk",
+      "module": "tools.agents.update_agents_bulk",
+      "arguments": {
+        "agents": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "displayName": "synthetic-test-value"
+          }
+        ]
+      },
+      "operation": "PUT /v1/agents"
+    },
+    {
+      "tool": "update_conversation_custom_attributes",
+      "module": "tools.custom_attributes.update_conversation_custom_attributes",
+      "arguments": {
+        "conversation_id": "00000000-0000-4000-8000-000000000001",
+        "custom_attributes": {}
+      },
+      "operation": "PATCH /v1/conversations/{conversationId}/custom-attributes"
+    },
+    {
+      "tool": "update_end_user_custom_attributes",
+      "module": "tools.custom_attributes.update_end_user_custom_attributes",
+      "arguments": {
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "custom_attributes": {}
+      },
+      "operation": "PATCH /v1/endusers/{userId}/custom-attributes"
+    },
+    {
+      "tool": "update_end_user_full",
+      "module": "tools.users.update_end_user_full",
+      "arguments": {
+        "user_id": "00000000-0000-4000-8000-000000000001",
+        "display_name": "synthetic-test-value"
+      },
+      "operation": "PUT /v1/endusers/{userId}"
+    },
+    {
+      "tool": "update_end_users_bulk",
+      "module": "tools.users.update_end_users_bulk",
+      "arguments": {
+        "end_users": [
+          {}
+        ]
+      },
+      "operation": "PUT /v1/endusers"
+    },
+    {
+      "tool": "upload_knowledge_article_attachments",
+      "module": "tools.knowledge.upload_knowledge_article_attachments",
+      "arguments": {
+        "files": [
+          {
+            "filename": "synthetic.png",
+            "media_type": "image/png",
+            "content_base64": "c3ludGhldGlj"
+          }
+        ]
+      },
+      "operation": "POST /v1/knowledge/articles/attachments"
+    }
+  ]
+}

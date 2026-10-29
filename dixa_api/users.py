@@ -4,7 +4,8 @@ Users-related API methods for DixaClient.
 
 import requests
 from typing import Dict, Any, Optional, List, Literal
-from requests.exceptions import RequestException, HTTPError
+from requests.exceptions import RequestException
+from dixa_api.safety import decode_response, raise_api_error
 
 def get_end_users(
     self,
@@ -40,17 +41,9 @@ def get_end_users(
     try:
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
 
 
@@ -80,17 +73,9 @@ def get_end_user(
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
 
 
@@ -162,17 +147,9 @@ def create_end_user(
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
 
 
@@ -208,17 +185,9 @@ def create_end_users_bulk(
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
 
 
@@ -292,17 +261,9 @@ def patch_end_user(
     try:
         response = requests.patch(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
 
 
@@ -338,17 +299,9 @@ def patch_end_users_bulk(
     try:
         response = requests.patch(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
 
 
@@ -422,17 +375,9 @@ def update_end_user(
     try:
         response = requests.put(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
 
 
@@ -468,17 +413,9 @@ def update_end_users_bulk(
     try:
         response = requests.put(url, json=payload, headers=headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
 
 
@@ -518,17 +455,9 @@ def get_end_user_conversations(
     try:
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     
 
 
@@ -564,15 +493,7 @@ def patch_end_user_anonymize(
     try:
         response = requests.patch(url, headers=headers, params=params)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
     

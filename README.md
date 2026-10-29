@@ -18,7 +18,7 @@ For issues or contributions, please use [GitHub Issues](https://github.com/Dixa-
 - **Organization Information**: Retrieve organization details from the Dixa API
 - **Flexible Authentication**: Multiple ways to provide API keys (environment variables, command-line args, client auth)
 - **Multiple Transport Options**: Supports both subprocess (for Claude Desktop) and HTTP/SSE transports
-- **Error Handling**: Comprehensive error handling with detailed error messages
+- **Error Handling**: Consistent errors with safe status metadata and no upstream response bodies
 
 ## Prerequisites
 
@@ -439,7 +439,7 @@ Dixa requires multilingual pre-release articles to publish all translations toge
 - **`fetch_analytics_filter_values`**: Fetch one page of allowed values for a discovered filter attribute.
 - **`fetch_unaggregated_data`**: Fetch one page of individual records after the discovery steps. Defaults to 50 rows, maximum 100 per request. Pass cursors unchanged and retain the same query; request additional pages only when needed.
 
-Every tool description includes prerequisite calls. Mutation prerequisites do not bypass confirmation: show the final content/change and destination, then obtain explicit approval. Webhook responses redact credentials and custom-header values.
+Every tool description includes prerequisite calls. Mutation prerequisites do not bypass confirmation: show the final content/change and destination, then obtain explicit approval. Webhook responses redact credentials and custom-header values. Webhook diagnostics also withhold receiver response bodies and event payloads while preserving delivery status metadata. Bulk/partial failures keep their item outcomes with safe messages; raw diagnostic details are withheld. Authentication and analytics code do not print credentials, request payloads or API responses.
 
 ### Tool Categories Summary
 
@@ -470,6 +470,12 @@ Every tool description includes prerequisite calls. Mutation prerequisites do no
 - **Analytics Workflow**: Always start with `prepare_analytics_metric_query` to discover available metrics, then use `fetch_aggregated_data` for summary statistics.
 
 ## Local Testing
+
+Run the automated suite with `python -m unittest discover -s tests -p '*_check.py'`.
+The security checks use synthetic credentials and mocked HTTP for all 124 tools and
+126 API operations, including errors, successful calls, partial failures, and logging.
+They make no live Dixa calls. Raw diagnostic messages are withheld; normal retrieved
+customer content and plaintext credential arguments remain model-visible.
 
 ### Test 1: Direct Python Testing
 
@@ -595,9 +601,9 @@ org_info = client.get_organization()
 
 ### Error Handling
 
-The client provides detailed error messages:
+The client reports safe error metadata:
 
-- **HTTPError**: For HTTP 4xx/5xx errors with response details
+- **HTTPError**: For HTTP 4xx/5xx errors with status only; upstream bodies, URLs and headers are withheld
 - **RequestException**: For network/request errors
 - **ValueError**: If API key is missing
 
@@ -671,15 +677,14 @@ def my_tool() -> Dict[str, Any]:
 
 ### Adding New API Endpoints
 
-Extend `DixaClient` in `dixa_api.py`:
+Add the method in the appropriate `dixa_api/` module, then attach it to `DixaClient` in `dixa_api/__init__.py`:
 
 ```python
+from dixa_api.http import api_request
+
 def get_new_endpoint(self, param: str) -> Dict[str, Any]:
-    """Get data from new endpoint."""
-    url = f"{self.base_url}/new-endpoint"
-    response = requests.get(url, headers=self.headers, params={"param": param})
-    response.raise_for_status()
-    return response.json()
+    """Get data from new endpoint with safe errors and diagnostic responses."""
+    return api_request(self, "GET", "/new-endpoint", params={"param": param})
 ```
 
 ## Security Notes

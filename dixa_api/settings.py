@@ -4,8 +4,9 @@ Settings-related API methods for DixaClient.
 
 import requests
 from typing import Dict, Any, Optional, List, Literal
-from requests.exceptions import RequestException, HTTPError
+from requests.exceptions import RequestException
 from dixa_api.http import api_request
+from dixa_api.safety import decode_response, raise_api_error
 
 def get_business_hours_status(
     self,
@@ -42,17 +43,9 @@ def get_business_hours_status(
     try:
         response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_business_hours_schedules(self) -> Dict[str, Any]:
@@ -82,17 +75,9 @@ def get_business_hours_schedules(self) -> Dict[str, Any]:
     try:
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_contact_endpoints(
@@ -138,17 +123,9 @@ def get_contact_endpoints(
     try:
         response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_contact_endpoint(
@@ -190,17 +167,9 @@ def get_contact_endpoint(
     try:
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
-        return response.json()
-    except HTTPError as e:
-        error_msg = f"HTTP {response.status_code} error: {e}"
-        try:
-            error_detail = response.json()
-            error_msg += f" - {error_detail}"
-        except ValueError:
-            error_msg += f" - {response.text}"
-        raise HTTPError(error_msg, response=response) from e
-    except RequestException as e:
-        raise RequestException(f"Request failed: {e}") from e
+        return decode_response(response)
+    except RequestException as exc:
+        raise_api_error(exc)
 
 
 def get_business_hours_definition(

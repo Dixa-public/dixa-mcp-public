@@ -276,9 +276,6 @@ async def fetch_aggregated_data(
     if aggregations:
         request["aggregations"] = aggregations
     
-    # Log the exact payload being sent
-    payload_json = json.dumps(request, indent=2)
-    print(f"[fetch_aggregated_data] Request payload:\n{payload_json}")
     
     client = get_dixa_client()
     return client.post_analytics_metric_data(request=request)

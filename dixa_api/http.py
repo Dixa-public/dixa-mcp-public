@@ -1,7 +1,8 @@
 """Shared JSON transport for the additional Dixa v1 endpoints."""
 from typing import Any, Dict, Optional
 import requests
-from requests.exceptions import HTTPError, RequestException
+from requests.exceptions import RequestException
+from dixa_api.safety import decode_response, raise_api_error
 
 
 def api_request(client, method: str, path: str, *, payload: Any = None,
@@ -17,12 +18,8 @@ def api_request(client, method: str, path: str, *, payload: Any = None,
     try:
         response = requests.request(method, f"{client.base_url}{path}", **kwargs)
         response.raise_for_status()
-    except HTTPError as exc:
-        # Upstream error bodies can echo webhook credentials or message content.
-        status = exc.response.status_code if exc.response is not None else "unknown"
-        raise HTTPError(f"Dixa API returned HTTP {status}", response=exc.response) from None
-    except RequestException:
-        raise RequestException("Dixa API request failed; the outcome may be unknown. Do not automatically retry a mutation.") from None
+    except RequestException as exc:
+        raise_api_error(exc)
     if response.status_code == 204:
         return {"success": True}
-    return response.json()
+    return decode_response(response)
